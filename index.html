@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zep Search Engine</title>
   <link href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: "Inter", Arial, sans-serif;
@@ -55,6 +56,14 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .result-title {
+      flex: 1;
+    }
     .result a {
       text-decoration: none;
       color: #007bff;
@@ -65,6 +74,48 @@
       margin-top: 0.5rem;
       color: #333;
       font-size: 0.95rem;
+    }
+    .result-meta {
+      display: flex;
+      align-items: center;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .page-type {
+      background: #e9ecef;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+    }
+    .vote-buttons {
+      display: flex;
+      flex-direction: column;
+      margin-left: 1rem;
+    }
+    .vote-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      font-size: 1rem;
+      padding: 0.2rem;
+      transition: all 0.2s;
+    }
+    .vote-btn:hover {
+      color: #007bff;
+      transform: scale(1.2);
+    }
+    .vote-btn.positive.active {
+      color: #28a745;
+    }
+    .vote-btn.negative.active {
+      color: #dc3545;
+    }
+    .vote-score {
+      text-align: center;
+      font-size: 0.8rem;
+      margin: 0.2rem 0;
     }
     .suggestion {
       margin-top: 0.8rem;
@@ -77,6 +128,23 @@
       text-decoration: underline;
       cursor: pointer;
     }
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    .notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -88,22 +156,62 @@
     <div id="results"></div>
   </main>
 
+  <div id="notification" class="notification"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <script>
     const dataURL = "https://literallytech.github.io/Zep/data/index.json";
+    const votesURL = "https://literallytech.github.io/Zep/data/votes.json";
     let entries = [];
     let fuse;
+    let userVotes = {}; // Store user's votes in session
 
     async function loadData() {
       try {
-        const res = await fetch(dataURL + "?t=" + Date.now()); // bypass cache
-        const data = await res.json();
-        entries = data;
-        fuse = new Fuse(entries, {
-          keys: ["name", "desc", "keywords", "title"],
-          threshold: 0.35,
-          includeScore: true
+        const [dataRes, votesRes] = await Promise.all([
+          fetch(dataURL + "?t=" + Date.now()), // bypass cache
+          fetch(votesURL + "?t=" + Date.now())
+        ]);
+        
+        const data = await dataRes.json();
+        const votes = await votesRes.json();
+        
+        // Merge vote data with entries
+        entries = data.map(entry => {
+          const voteData = votes.find(v => v.url === entry.url);
+          return {
+            ...entry,
+            voteScore: voteData ? voteData.score : 0,
+            positiveVotes: voteData ? voteData.positive : 0,
+            negativeVotes: voteData ? voteData.negative : 0
+          };
         });
+        
+        // Sort by vote score initially
+        entries.sort((a, b) => b.voteScore - a.voteScore);
+        
+        fuse = new Fuse(entries, {
+          keys: [
+            { name: "name", weight: 0.3 },
+            { name: "desc", weight: 0.2 },
+            { name: "keywords", weight: 0.15 },
+            { name: "title", weight: 0.15 },
+            { name: "content", weight: 0.15 },
+            { name: "headings", weight: 0.05 }
+          ],
+          threshold: 0.35,
+          includeScore: true,
+          shouldSort: true,
+          sortFn: (a, b) => {
+            // First by vote score (higher is better)
+            if (a.item.voteScore !== b.item.voteScore) {
+              return b.item.voteScore - a.item.voteScore;
+            }
+            // Then by search relevance (lower score is better)
+            return a.score - b.score;
+          }
+        });
+        
         console.log(`Loaded ${entries.length} entries.`);
       } catch (err) {
         document.getElementById("results").innerHTML =
@@ -136,13 +244,96 @@
       }
 
       container.innerHTML = results
-        .map(r => `
-          <div class="result">
-            <a href="${r.item.url}" target="_blank">${r.item.name}</a>
-            <p>${r.item.desc || r.item.title || ""}</p>
-          </div>
-        `)
+        .map(r => {
+          const item = r.item;
+          const hasVoted = userVotes[item.url];
+          
+          return `
+            <div class="result">
+              <div class="result-header">
+                <div class="result-title">
+                  <a href="${item.url}" target="_blank">${item.name}</a>
+                  <div class="result-meta">
+                    ${item.pageType ? `<span class="page-type">${item.pageType}</span>` : ''}
+                    ${item.voteScore !== 0 ? `<span>Score: ${item.voteScore > 0 ? '+' : ''}${item.voteScore}</span>` : ''}
+                  </div>
+                  <p>${item.desc || item.description || item.title || ""}</p>
+                </div>
+                <div class="vote-buttons">
+                  <button class="vote-btn positive ${hasVoted === 'positive' ? 'active' : ''}" 
+                          onclick="vote('${item.url}', 'positive')" title="Helpful">
+                    <i class="fas fa-thumbs-up"></i>
+                  </button>
+                  <div class="vote-score">${item.positiveVotes || 0}</div>
+                  <button class="vote-btn negative ${hasVoted === 'negative' ? 'active' : ''}" 
+                          onclick="vote('${item.url}', 'negative')" title="Not helpful">
+                    <i class="fas fa-thumbs-down"></i>
+                  </button>
+                  <div class="vote-score">${item.negativeVotes || 0}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        })
         .join("");
+    }
+
+    function vote(url, type) {
+      // Store user's vote locally
+      userVotes[url] = type;
+      
+      // Update the UI immediately
+      const resultElements = document.querySelectorAll('.result');
+      resultElements.forEach(el => {
+        const link = el.querySelector('a').getAttribute('href');
+        if (link === url) {
+          const positiveBtn = el.querySelector('.vote-btn.positive');
+          const negativeBtn = el.querySelector('.vote-btn.negative');
+          
+          if (type === 'positive') {
+            positiveBtn.classList.add('active');
+            negativeBtn.classList.remove('active');
+          } else {
+            negativeBtn.classList.add('active');
+            positiveBtn.classList.remove('active');
+          }
+        }
+      });
+      
+      // Show notification
+      showNotification(`Your vote has been recorded!`);
+      
+      // Send vote to our collection endpoint
+      saveVoteToServer(url, type);
+    }
+
+    function saveVoteToServer(url, type) {
+      // Send vote to our collection endpoint
+      fetch('https://literallytech.github.io/Zep/api/collect-vote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url, type, timestamp: Date.now() })
+      })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Failed to record vote');
+        }
+      })
+      .catch(error => {
+        console.error('Error recording vote:', error);
+      });
+    }
+
+    function showNotification(message) {
+      const notification = document.getElementById("notification");
+      notification.textContent = message;
+      notification.classList.add("show");
+      
+      setTimeout(() => {
+        notification.classList.remove("show");
+      }, 3000);
     }
 
     function setSearch(text) {
