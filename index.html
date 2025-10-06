@@ -1,149 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zep Search Engine</title>
-  <link href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    /* === General Style === */
     body {
-      font-family: "Inter", Arial, sans-serif;
-      background: #f4f5f7;
+      font-family: "Segoe UI", "Inter", Arial, sans-serif;
+      background: linear-gradient(120deg, #cfd9df, #e2ebf0);
+      background-attachment: fixed;
       margin: 0;
       padding: 0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-    header {
-      background: #111;
+      justify-content: flex-start;
       color: #fff;
+    }
+
+    header {
       width: 100%;
-      padding: 1rem 0;
       text-align: center;
-      font-size: 1.6rem;
+      padding: 1rem 0;
+      font-size: 2rem;
       font-weight: bold;
+      color: #fff;
       letter-spacing: 1px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     }
+
     main {
-      max-width: 700px;
       width: 90%;
-      margin-top: 2rem;
+      max-width: 750px;
+      margin-top: 3rem;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      padding: 2rem;
+      transition: all 0.3s ease;
     }
+
+    /* === Search Input === */
     input {
       width: 100%;
-      padding: 0.8rem 1rem;
-      font-size: 1rem;
-      border: 2px solid #ccc;
-      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
       outline: none;
-      transition: 0.2s;
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.15);
+      transition: all 0.25s ease;
+    }
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
     }
     input:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
+      background: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 8px rgba(0, 140, 255, 0.6);
     }
+
+    /* === Search Results === */
     .result {
-      background: #fff;
-      padding: 1rem 1.5rem;
-      border-radius: 10px;
-      margin: 1rem 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      transition: 0.2s;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      margin-top: 1.2rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s ease;
+      color: #fff;
     }
     .result:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      background: rgba(255, 255, 255, 0.25);
     }
     .result-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
     }
-    .result-title {
-      flex: 1;
-    }
     .result a {
+      color: #9cd7ff;
       text-decoration: none;
-      color: #007bff;
-      font-size: 1.2rem;
       font-weight: bold;
+      font-size: 1.3rem;
+      transition: all 0.2s ease;
+      text-shadow: 0 0 5px rgba(156, 215, 255, 0.4);
+    }
+    .result a:hover {
+      color: #bce8ff;
+      text-shadow: 0 0 12px rgba(180, 230, 255, 0.8);
     }
     .result p {
-      margin-top: 0.5rem;
-      color: #333;
-      font-size: 0.95rem;
+      margin-top: 0.6rem;
+      color: rgba(255, 255, 255, 0.85);
     }
     .result-meta {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.75);
       display: flex;
       align-items: center;
-      margin-top: 0.5rem;
-      font-size: 0.8rem;
-      color: #666;
+      flex-wrap: wrap;
     }
     .page-type {
-      background: #e9ecef;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(6px);
+      border-radius: 8px;
+      padding: 0.2rem 0.6rem;
       margin-right: 0.5rem;
     }
+
+    /* === Vote Buttons === */
     .vote-buttons {
       display: flex;
       flex-direction: column;
-      margin-left: 1rem;
+      align-items: center;
     }
     .vote-btn {
-      background: none;
+      background: rgba(255, 255, 255, 0.2);
       border: none;
+      border-radius: 8px;
+      color: #fff;
       cursor: pointer;
-      color: #666;
-      font-size: 1rem;
-      padding: 0.2rem;
-      transition: all 0.2s;
+      padding: 0.4rem;
+      margin: 0.2rem;
+      font-size: 1.1rem;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
     .vote-btn:hover {
-      color: #007bff;
-      transform: scale(1.2);
+      background: rgba(255, 255, 255, 0.35);
+      transform: scale(1.15);
     }
     .vote-btn.positive.active {
-      color: #28a745;
+      color: #00ff88;
+      text-shadow: 0 0 8px #00ff88;
     }
     .vote-btn.negative.active {
-      color: #dc3545;
+      color: #ff4477;
+      text-shadow: 0 0 8px #ff4477;
     }
     .vote-score {
-      text-align: center;
-      font-size: 0.8rem;
-      margin: 0.2rem 0;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
     }
+
+    /* === Suggestion === */
     .suggestion {
-      margin-top: 0.8rem;
-      color: #666;
-      font-size: 0.95rem;
+      margin-top: 1rem;
       text-align: center;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 1rem;
     }
     .suggestion a {
-      color: #007bff;
+      color: #9cd7ff;
       text-decoration: underline;
       cursor: pointer;
+      transition: color 0.2s ease;
     }
+    .suggestion a:hover {
+      color: #bce8ff;
+    }
+
+    /* === Notification === */
     .notification {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: #333;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
       color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      padding: 0.9rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
       transform: translateY(100px);
       opacity: 0;
-      transition: all 0.3s ease;
+      transition: all 0.4s ease;
     }
     .notification.show {
       transform: translateY(0);
       opacity: 1;
+    }
+
+    /* === Subtle Fade-In Animation === */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .result {
+      animation: fadeIn 0.4s ease forwards;
     }
   </style>
 </head>
@@ -164,19 +228,17 @@
     const votesURL = "https://literallytech.github.io/Zep/data/votes.json";
     let entries = [];
     let fuse;
-    let userVotes = {}; // Store user's votes in session
+    let userVotes = {};
 
     async function loadData() {
       try {
         const [dataRes, votesRes] = await Promise.all([
-          fetch(dataURL + "?t=" + Date.now()), // bypass cache
+          fetch(dataURL + "?t=" + Date.now()),
           fetch(votesURL + "?t=" + Date.now())
         ]);
-        
         const data = await dataRes.json();
         const votes = await votesRes.json();
-        
-        // Merge vote data with entries
+
         entries = data.map(entry => {
           const voteData = votes.find(v => v.url === entry.url);
           return {
@@ -186,10 +248,9 @@
             negativeVotes: voteData ? voteData.negative : 0
           };
         });
-        
-        // Sort by vote score initially
+
         entries.sort((a, b) => b.voteScore - a.voteScore);
-        
+
         fuse = new Fuse(entries, {
           keys: [
             { name: "name", weight: 0.3 },
@@ -203,19 +264,15 @@
           includeScore: true,
           shouldSort: true,
           sortFn: (a, b) => {
-            // First by vote score (higher is better)
             if (a.item.voteScore !== b.item.voteScore) {
               return b.item.voteScore - a.item.voteScore;
             }
-            // Then by search relevance (lower score is better)
             return a.score - b.score;
           }
         });
-        
-        console.log(`Loaded ${entries.length} entries.`);
       } catch (err) {
         document.getElementById("results").innerHTML =
-          "<p style='text-align:center;color:#777;'>Failed to load data.</p>";
+          "<p style='text-align:center;color:#ddd;'>Failed to load data.</p>";
       }
     }
 
@@ -231,7 +288,7 @@
       const suggestionBox = document.getElementById("suggestion");
 
       if (!results.length) {
-        container.innerHTML = "<p style='text-align:center;color:#777;'>No results found.</p>";
+        container.innerHTML = "<p style='text-align:center;color:#ccc;'>No results found.</p>";
         suggestionBox.innerHTML = "";
         return;
       }
@@ -247,26 +304,24 @@
         .map(r => {
           const item = r.item;
           const hasVoted = userVotes[item.url];
-          
+
           return `
             <div class="result">
               <div class="result-header">
                 <div class="result-title">
                   <a href="${item.url}" target="_blank">${item.name}</a>
                   <div class="result-meta">
-                    ${item.pageType ? `<span class="page-type">${item.pageType}</span>` : ''}
-                    ${item.voteScore !== 0 ? `<span>Score: ${item.voteScore > 0 ? '+' : ''}${item.voteScore}</span>` : ''}
+                    ${item.pageType ? `<span class="page-type">${item.pageType}</span>` : ""}
+                    ${item.voteScore !== 0 ? `<span>Score: ${item.voteScore > 0 ? "+" : ""}${item.voteScore}</span>` : ""}
                   </div>
                   <p>${item.desc || item.description || item.title || ""}</p>
                 </div>
                 <div class="vote-buttons">
-                  <button class="vote-btn positive ${hasVoted === 'positive' ? 'active' : ''}" 
-                          onclick="vote('${item.url}', 'positive')" title="Helpful">
+                  <button class="vote-btn positive ${hasVoted === "positive" ? "active" : ""}" onclick="vote('${item.url}', 'positive')" title="Helpful">
                     <i class="fas fa-thumbs-up"></i>
                   </button>
                   <div class="vote-score">${item.positiveVotes || 0}</div>
-                  <button class="vote-btn negative ${hasVoted === 'negative' ? 'active' : ''}" 
-                          onclick="vote('${item.url}', 'negative')" title="Not helpful">
+                  <button class="vote-btn negative ${hasVoted === "negative" ? "active" : ""}" onclick="vote('${item.url}', 'negative')" title="Not helpful">
                     <i class="fas fa-thumbs-down"></i>
                   </button>
                   <div class="vote-score">${item.negativeVotes || 0}</div>
@@ -279,50 +334,23 @@
     }
 
     function vote(url, type) {
-      // Store user's vote locally
       userVotes[url] = type;
-      
-      // Update the UI immediately
-      const resultElements = document.querySelectorAll('.result');
-      resultElements.forEach(el => {
-        const link = el.querySelector('a').getAttribute('href');
+      document.querySelectorAll(".result").forEach(el => {
+        const link = el.querySelector("a").getAttribute("href");
         if (link === url) {
-          const positiveBtn = el.querySelector('.vote-btn.positive');
-          const negativeBtn = el.querySelector('.vote-btn.negative');
-          
-          if (type === 'positive') {
-            positiveBtn.classList.add('active');
-            negativeBtn.classList.remove('active');
-          } else {
-            negativeBtn.classList.add('active');
-            positiveBtn.classList.remove('active');
-          }
+          el.querySelector(".vote-btn.positive").classList.toggle("active", type === "positive");
+          el.querySelector(".vote-btn.negative").classList.toggle("active", type === "negative");
         }
       });
-      
-      // Show notification
-      showNotification(`Your vote has been recorded!`);
-      
-      // Send vote to our collection endpoint
+      showNotification("Your vote has been recorded!");
       saveVoteToServer(url, type);
     }
 
     function saveVoteToServer(url, type) {
-      // Send vote to our collection endpoint
-      fetch('https://literallytech.github.io/Zep/api/collect-vote', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      fetch("https://literallytech.github.io/Zep/api/collect-vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, type, timestamp: Date.now() })
-      })
-      .then(response => {
-        if (!response.ok) {
-          console.error('Failed to record vote');
-        }
-      })
-      .catch(error => {
-        console.error('Error recording vote:', error);
       });
     }
 
@@ -330,10 +358,7 @@
       const notification = document.getElementById("notification");
       notification.textContent = message;
       notification.classList.add("show");
-      
-      setTimeout(() => {
-        notification.classList.remove("show");
-      }, 3000);
+      setTimeout(() => notification.classList.remove("show"), 3000);
     }
 
     function setSearch(text) {
@@ -342,7 +367,6 @@
     }
 
     document.getElementById("search").addEventListener("input", e => search(e.target.value));
-
     loadData();
   </script>
 </body>
