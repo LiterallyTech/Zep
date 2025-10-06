@@ -1,1 +1,7 @@
+Name: GitHub
+URL: https://github.com
+Description: The largest code hosting platform for version control and collaboration using Git.
 
+Name: Python
+URL: https://www.python.org
+Description: Official Python website with documentation and downloads.
