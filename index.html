@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zep Search Engine</title>
   <style>
     body {
@@ -65,10 +65,28 @@
       color: #333;
       font-size: 0.95rem;
     }
+    mark {
+      background: #ffeb3b;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
     #results p.no-results {
       text-align: center;
       color: #777;
       font-size: 1rem;
+    }
+    #suggestion {
+      text-align: center;
+      color: #555;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+    #suggestion span {
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -77,18 +95,26 @@
 
   <main>
     <input id="search" type="text" placeholder="Search your sites..." />
+    <div id="suggestion"></div>
     <div id="results"></div>
   </main>
+
+  <!-- ✅ Fuse.js for smart fuzzy search -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+  <!-- ✅ Mark.js for text highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.min.js"></script>
 
   <script>
     const dataURL = "https://cdn.jsdelivr.net/gh/LiterallyTech/Zep@main/data/sites.txt";
     let entries = [];
+    let fuse;
 
     async function loadData() {
       try {
         const res = await fetch(dataURL);
         const text = await res.text();
         parseEntries(text);
+        initFuse();
         console.log(`Loaded ${entries.length} entries.`);
       } catch (err) {
         console.error("Failed to load data:", err);
@@ -110,48 +136,91 @@
       }
     }
 
-    // Smarter search with partial matches + relevance
-    function search(query) {
-      const q = query.toLowerCase().trim();
-      if (!q) {
-        displayResults([]);
-        return;
-      }
-
-      const terms = q.split(/\s+/);
-
-      const results = entries
-        .map(e => {
-          const text = (e.name + " " + e.desc).toLowerCase();
-          let score = 0;
-          for (const term of terms) {
-            if (text.includes(term)) score += 2; // direct match
-            else {
-              // partial match (e.g., "prog" ~ "programming")
-              const partial = text.split(" ").some(word => word.startsWith(term));
-              if (partial) score += 1;
-            }
-          }
-          return { ...e, score };
-        })
-        .filter(e => e.score > 0)
-        .sort((a, b) => b.score - a.score); // highest score first
-
-      displayResults(results);
+    function initFuse() {
+      fuse = new Fuse(entries, {
+        keys: ["name", "desc"],
+        includeScore: true,
+        threshold: 0.4, // lower = stricter
+      });
     }
 
-    function displayResults(results) {
-      const container = document.getElementById("results");
-      if (!results.length) {
-        container.innerHTML = "<p class='no-results'>No results found.</p>";
+    function search(query) {
+      const q = query.trim();
+      const suggestionDiv = document.getElementById("suggestion");
+      const resultsDiv = document.getElementById("results");
+      suggestionDiv.innerHTML = "";
+
+      if (!q) {
+        resultsDiv.innerHTML = "";
         return;
       }
-      container.innerHTML = results.map(e => `
-        <div class="result">
-          <a href="${e.url}" target="_blank">${e.name}</a>
-          <p>${e.desc}</p>
-        </div>
-      `).join("");
+
+      const results = fuse.search(q);
+      if (results.length === 0) {
+        // 🔍 "Did you mean" suggestion
+        const words = entries.flatMap(e =>
+          (e.name + " " + e.desc).toLowerCase().split(/\s+/)
+        );
+        const suggestion = findClosestWord(q.toLowerCase(), words);
+        if (suggestion) {
+          suggestionDiv.innerHTML = `Did you mean: <span onclick="applySuggestion('${suggestion}')">${suggestion}</span>?`;
+        }
+        resultsDiv.innerHTML = "<p class='no-results'>No results found.</p>";
+        return;
+      }
+
+      resultsDiv.innerHTML = results
+        .map(
+          r => `
+          <div class="result">
+            <a href="${r.item.url}" target="_blank">${r.item.name}</a>
+            <p>${r.item.desc}</p>
+          </div>
+        `
+        )
+        .join("");
+
+      // highlight matching words
+      const markInstance = new Mark(resultsDiv);
+      markInstance.mark(q, { separateWordSearch: true });
+    }
+
+    function findClosestWord(term, words) {
+      let best = null;
+      let bestDist = Infinity;
+      for (const w of words) {
+        const d = levenshtein(term, w);
+        if (d < bestDist) {
+          bestDist = d;
+          best = w;
+        }
+      }
+      return bestDist <= 2 ? best : null;
+    }
+
+    function levenshtein(a, b) {
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          matrix[i][j] =
+            b.charAt(i - 1) === a.charAt(j - 1)
+              ? matrix[i - 1][j - 1]
+              : Math.min(
+                  matrix[i - 1][j - 1] + 1,
+                  matrix[i][j - 1] + 1,
+                  matrix[i - 1][j] + 1
+                );
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    function applySuggestion(s) {
+      const input = document.getElementById("search");
+      input.value = s;
+      search(s);
     }
 
     document.getElementById("search").addEventListener("input", e => {
