@@ -81,14 +81,12 @@
   </main>
 
   <script>
-    // ✅ Load your .txt file from jsDelivr (auto CORS-safe)
     const dataURL = "https://cdn.jsdelivr.net/gh/LiterallyTech/Zep@main/data/sites.txt";
     let entries = [];
 
     async function loadData() {
       try {
         const res = await fetch(dataURL);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
         parseEntries(text);
         console.log(`Loaded ${entries.length} entries.`);
@@ -112,12 +110,33 @@
       }
     }
 
+    // Smarter search with partial matches + relevance
     function search(query) {
-      const q = query.toLowerCase();
-      const results = entries.filter(e =>
-        e.name.toLowerCase().includes(q) ||
-        e.desc.toLowerCase().includes(q)
-      );
+      const q = query.toLowerCase().trim();
+      if (!q) {
+        displayResults([]);
+        return;
+      }
+
+      const terms = q.split(/\s+/);
+
+      const results = entries
+        .map(e => {
+          const text = (e.name + " " + e.desc).toLowerCase();
+          let score = 0;
+          for (const term of terms) {
+            if (text.includes(term)) score += 2; // direct match
+            else {
+              // partial match (e.g., "prog" ~ "programming")
+              const partial = text.split(" ").some(word => word.startsWith(term));
+              if (partial) score += 1;
+            }
+          }
+          return { ...e, score };
+        })
+        .filter(e => e.score > 0)
+        .sort((a, b) => b.score - a.score); // highest score first
+
       displayResults(results);
     }
 
