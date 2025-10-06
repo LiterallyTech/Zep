@@ -1,164 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zep Search</title>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zep Search Engine</title>
+  <link href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: #f4f5f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      background: #111;
+      color: #fff;
+      width: 100%;
+      padding: 1rem 0;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    main {
+      max-width: 700px;
+      width: 90%;
+      margin-top: 2rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      transition: 0.2s;
+    }
+    input:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
+    }
+    .result {
+      background: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      margin: 1rem 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    }
+    .result:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .result a {
+      text-decoration: none;
+      color: #007bff;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .result p {
+      margin-top: 0.5rem;
+      color: #333;
+      font-size: 0.95rem;
+    }
+    .suggestion {
+      margin-top: 0.8rem;
+      color: #666;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .suggestion a {
+      color: #007bff;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col items-center p-8">
-  <h1 class="text-4xl font-bold mb-6 text-blue-600">Zep Search</h1>
+<body>
+  <header>Zep 🔍</header>
 
-  <div class="w-full max-w-2xl">
-    <input
-      id="searchBox"
-      type="text"
-      placeholder="Search websites..."
-      class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-      oninput="zep.search()"
-    />
+  <main>
+    <input id="search" type="text" placeholder="Search your sites..." autocomplete="off" />
+    <div id="suggestion" class="suggestion"></div>
+    <div id="results"></div>
+  </main>
 
-    <div id="suggestion" class="mt-2 text-gray-600 text-sm"></div>
-    <div id="results" class="mt-6 space-y-4"></div>
-  </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <script>
-    // ✅ Your exact working jsDelivr link (CORS-safe)
-    const baseDataURL = "https://cdn.jsdelivr.net/gh/LiterallyTech/Zep@refs/heads/main/data/sites.txt";
+    const dataURL = "https://literallytech.github.io/Zep/data/index.json";
+    let entries = [];
+    let fuse;
 
-    const zep = {
-      query: "",
-      entries: [],
-      fuse: null,
-
-      async search() {
-        this.query = document.getElementById("searchBox").value.trim();
-        const resultsDiv = document.getElementById("results");
-        const suggestionDiv = document.getElementById("suggestion");
-        const markInstance = new Mark(resultsDiv);
-        markInstance.unmark();
-        resultsDiv.innerHTML = "";
-        suggestionDiv.innerHTML = "";
-
-        if (!this.query) return;
-
-        try {
-          // 🚀 Cache-busting timestamp
-          const dataURL = `${baseDataURL}?t=${Date.now()}`;
-
-          const res = await fetch(dataURL, {
-            cache: "no-store",
-            headers: {
-              "Cache-Control": "no-cache, no-store, must-revalidate",
-              Pragma: "no-cache",
-              Expires: "0"
-            }
-          });
-
-          if (!res.ok) throw new Error("Failed to fetch data");
-          const text = await res.text();
-          this.entries = this.parseEntries(text);
-
-          if (this.entries.length === 0) {
-            resultsDiv.innerHTML = `<p class="text-gray-500 text-center">No sites found in data file.</p>`;
-            return;
-          }
-
-          this.fuse = new Fuse(this.entries, {
-            keys: ["name", "desc"],
-            threshold: 0.4,
-            includeScore: true
-          });
-
-          const results = this.fuse.search(this.query);
-
-          if (results.length === 0) {
-            this.showSuggestion(this.query, suggestionDiv);
-            resultsDiv.innerHTML = `<p class="text-gray-500 text-center">No results found.</p>`;
-            return;
-          }
-
-          resultsDiv.innerHTML = results
-            .map(
-              (r) => `
-            <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition transform hover:-translate-y-0.5">
-              <a href="${r.item.url}" target="_blank"
-                 class="text-blue-600 font-semibold text-lg hover:underline">
-                ${r.item.name}
-              </a>
-              <p class="text-gray-700 mt-1">${r.item.desc}</p>
-            </div>
-          `
-            )
-            .join("");
-
-          markInstance.mark(this.query, { separateWordSearch: true });
-        } catch (err) {
-          console.error(err);
-          resultsDiv.innerHTML = `<p class="text-center text-red-500">Failed to load data from GitHub.</p>`;
-        }
-      },
-
-      parseEntries(text) {
-        const blocks = text.trim().split(/\n(?=Name:)/);
-        return blocks
-          .map((block) => {
-            const name = block.match(/Name:\s*(.*)/)?.[1]?.trim();
-            const url = block.match(/URL:\s*(.*)/)?.[1]?.trim();
-            const desc = block.match(/Description:\s*(.*)/)?.[1]?.trim();
-            return name && url && desc ? { name, url, desc } : null;
-          })
-          .filter(Boolean);
-      },
-
-      showSuggestion(q, suggestionDiv) {
-        const allWords = this.entries.flatMap((e) =>
-          (e.name + " " + e.desc).toLowerCase().split(/\s+/)
-        );
-        const suggestion = this.findClosestWord(q.toLowerCase(), allWords);
-        if (suggestion && suggestion !== q.toLowerCase()) {
-          suggestionDiv.innerHTML = `Did you mean: 
-            <button class="text-blue-600 underline" onclick="zep.applySuggestion('${suggestion}')">${suggestion}</button>?`;
-        }
-      },
-
-      applySuggestion(s) {
-        document.getElementById("searchBox").value = s;
-        this.search();
-      },
-
-      findClosestWord(word, list) {
-        let minDist = Infinity;
-        let best = "";
-        for (const w of list) {
-          const d = this.levenshtein(word, w);
-          if (d < minDist) {
-            minDist = d;
-            best = w;
-          }
-        }
-        return minDist <= 2 ? best : "";
-      },
-
-      levenshtein(a, b) {
-        const matrix = Array.from({ length: a.length + 1 }, () => []);
-        for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
-        for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
-        for (let i = 1; i <= a.length; i++) {
-          for (let j = 1; j <= b.length; j++) {
-            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-            matrix[i][j] = Math.min(
-              matrix[i - 1][j] + 1,
-              matrix[i][j - 1] + 1,
-              matrix[i - 1][j - 1] + cost
-            );
-          }
-        }
-        return matrix[a.length][b.length];
+    async function loadData() {
+      try {
+        const res = await fetch(dataURL + "?t=" + Date.now()); // bypass cache
+        const data = await res.json();
+        entries = data;
+        fuse = new Fuse(entries, {
+          keys: ["name", "desc", "keywords", "title"],
+          threshold: 0.35,
+          includeScore: true
+        });
+        console.log(`Loaded ${entries.length} entries.`);
+      } catch (err) {
+        document.getElementById("results").innerHTML =
+          "<p style='text-align:center;color:#777;'>Failed to load data.</p>";
       }
-    };
+    }
+
+    function search(query) {
+      if (!query.trim()) {
+        document.getElementById("results").innerHTML = "";
+        document.getElementById("suggestion").innerHTML = "";
+        return;
+      }
+
+      const results = fuse.search(query);
+      const container = document.getElementById("results");
+      const suggestionBox = document.getElementById("suggestion");
+
+      if (!results.length) {
+        container.innerHTML = "<p style='text-align:center;color:#777;'>No results found.</p>";
+        suggestionBox.innerHTML = "";
+        return;
+      }
+
+      const bestMatch = results[0].item;
+      if (results[0].score > 0.25) {
+        suggestionBox.innerHTML = `Did you mean: <a onclick="setSearch('${bestMatch.name}')">${bestMatch.name}</a>?`;
+      } else {
+        suggestionBox.innerHTML = "";
+      }
+
+      container.innerHTML = results
+        .map(r => `
+          <div class="result">
+            <a href="${r.item.url}" target="_blank">${r.item.name}</a>
+            <p>${r.item.desc || r.item.title || ""}</p>
+          </div>
+        `)
+        .join("");
+    }
+
+    function setSearch(text) {
+      document.getElementById("search").value = text;
+      search(text);
+    }
+
+    document.getElementById("search").addEventListener("input", e => search(e.target.value));
+
+    loadData();
   </script>
 </body>
 </html>
