@@ -1,219 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zep – Liquid Glass UI</title>
-  <link href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    /* === Utility / Root === */
-    :root {
-      --glass-bg: rgba(255, 255, 255, 0.10);
-      --glass-border: rgba(255, 255, 255, 0.5);
-      --glass-highlight: rgba(255, 255, 255, 0.7);
-      --glass-inner-shadow: rgba(0, 0, 0, 0.2);
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zep Search Engine</title>
+<link href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --blur: 24px;
+  --tint: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.22);
+  --highlight: rgba(255, 255, 255, 0.4);
+  --text-primary: #e8e8ea;
+  --text-secondary: #b9b9bb;
+  --accent: #64b5ff;
+  --radius: 14px;
+  --bg-gradient: linear-gradient(135deg, #0e0e10 0%, #1d1f22 100%);
+}
 
-      --accent-color: #6fcfff;
-      --text-light: #ffffff;
-      --text-strong: #e0e0e0;
+/* Base setup */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
 
-      --blur-amount: 20px;
-      --distortion-scale: 5px;
-    }
+/* Header */
+header {
+  width: 100%;
+  text-align: center;
+  padding: 1.2rem 0;
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 0.3px;
+  background: var(--tint);
+  backdrop-filter: blur(var(--blur));
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Inter", system-ui, sans-serif;
-      background: linear-gradient(135deg, #1e293b, #3b4252);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: var(--text-light);
-    }
+/* Main container */
+main {
+  width: 90%;
+  max-width: 720px;
+  margin-top: 3rem;
+  background: var(--tint);
+  backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0.5px var(--highlight), 0 4px 20px rgba(0,0,0,0.25);
+  padding: 1.8rem 2rem;
+}
 
-    header {
-      width: 100%;
-      padding: 1.5rem 0;
-      font-size: 2rem;
-      font-weight: bold;
-      text-align: center;
-      /* Liquid glass panel for header */
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      backdrop-filter: blur(var(--blur-amount)) saturate(180%);
-      box-shadow:
-        0 4px 30px rgba(0, 0, 0, 0.35),
-        inset 0 0 0 1px var(--glass-border);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+/* Input */
+input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
+  backdrop-filter: blur(calc(var(--blur) / 2));
+  transition: border 0.15s ease;
+}
+input:focus {
+  border-color: var(--accent);
+}
 
-    main {
-      width: 90%;
-      max-width: 700px;
-      margin-top: 2.5rem;
-      padding: 2rem;
-      border-radius: 24px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      backdrop-filter: blur(var(--blur-amount)) saturate(180%);
-      box-shadow:
-        0 8px 40px rgba(0, 0, 0, 0.25),
-        inset 0 0 0 1px var(--glass-border);
-    }
+/* Suggestion */
+.suggestion {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 0.8rem;
+  font-size: 0.95rem;
+}
+.suggestion a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.suggestion a:hover {
+  text-decoration: underline;
+}
 
-    input {
-      width: 100%;
-      padding: 1rem 1.2rem;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.12);
-      color: var(--text-strong);
-      outline: none;
-      backdrop-filter: blur(12px) saturate(200%);
-      box-shadow:
-        inset 0 2px 6px rgba(255, 255, 255, 0.15),
-        0 2px 8px rgba(0, 0, 0, 0.2);
-      transition: all 0.25s ease;
-    }
-    input::placeholder {
-      color: rgba(224, 224, 224, 0.7);
-    }
-    input:focus {
-      background: rgba(255, 255, 255, 0.18);
-      box-shadow:
-        0 0 10px var(--accent-color),
-        inset 0 2px 8px rgba(255, 255, 255, 0.2);
-    }
+/* Result items */
+.result {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: 1.2rem;
+  padding: 1.2rem 1.4rem;
+  transition: background 0.1s ease, border 0.1s ease;
+}
+.result:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.28);
+}
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.result a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+.result a:hover {
+  text-decoration: underline;
+}
+.result p {
+  color: var(--text-secondary);
+  margin-top: 0.4rem;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.result-meta {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+.page-type {
+  background: rgba(255,255,255,0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  margin-right: 0.6rem;
+}
 
-    .result {
-      margin-top: 1.5rem;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid var(--glass-border);
-      backdrop-filter: blur(var(--blur-amount)) saturate(180%);
-      box-shadow:
-        0 6px 30px rgba(0, 0, 0, 0.25),
-        inset 0 0 0 1px var(--glass-border);
-      transition: transform 0.3s ease, background 0.3s ease;
-      overflow: hidden;
-    }
-    .result:hover {
-      transform: translateY(-4px);
-      background: rgba(255, 255, 255, 0.16);
-    }
+/* Vote buttons */
+.vote-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+.vote-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.05rem;
+  padding: 0.2rem;
+  transition: color 0.1s ease, transform 0.1s ease;
+}
+.vote-btn:hover {
+  color: var(--accent);
+  transform: scale(1.15);
+}
+.vote-btn.positive.active {
+  color: #3ee689;
+}
+.vote-btn.negative.active {
+  color: #ff5b7d;
+}
+.vote-score {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
 
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .result a {
-      color: var(--accent-color);
-      text-decoration: none;
-      font-size: 1.3rem;
-      font-weight: 600;
-      text-shadow: 0 0 6px rgba(var(--accent-color), 0.4);
-      transition: color 0.2s ease;
-    }
-    .result a:hover {
-      color: #c4f0ff;
-    }
-
-    .result p {
-      margin-top: 0.6rem;
-      color: rgba(224, 224, 224, 0.9);
-    }
-
-    .result-meta {
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      color: rgba(224, 224, 224, 0.8);
-      display: flex;
-      align-items: center;
-    }
-
-    .page-type {
-      background: rgba(255, 255, 255, 0.25);
-      border-radius: 8px;
-      padding: 0.2rem 0.6rem;
-      margin-right: 0.5rem;
-    }
-
-    .vote-buttons {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .vote-btn {
-      background: rgba(255, 255, 255, 0.15);
-      border: none;
-      border-radius: 12px;
-      color: var(--text-light);
-      padding: 0.6rem;
-      margin: 0.2rem;
-      font-size: 1.2rem;
-      cursor: pointer;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      transition: transform 0.25s ease, background 0.25s ease;
-      backdrop-filter: blur(12px) saturate(180%);
-    }
-    .vote-btn:hover {
-      background: rgba(255, 255, 255, 0.22);
-      transform: scale(1.2);
-    }
-    .vote-btn.positive.active {
-      color: #00ff88;
-      text-shadow: 0 0 8px #00ff88;
-    }
-    .vote-btn.negative.active {
-      color: #ff4477;
-      text-shadow: 0 0 8px #ff4477;
-    }
-    .vote-score {
-      font-size: 0.9rem;
-      color: rgba(224, 224, 224, 0.85);
-    }
-
-    .suggestion {
-      margin-top: 1rem;
-      text-align: center;
-      color: rgba(224, 224, 224, 0.9);
-      font-size: 1.05rem;
-    }
-    .suggestion a {
-      color: var(--accent-color);
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    .notification {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(12px) saturate(180%);
-      color: #fff;
-      padding: 1rem 1.8rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.4s ease;
-    }
-    .notification.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  </style>
+/* Notification */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(30,30,30,0.75);
+  backdrop-filter: blur(calc(var(--blur) / 1.5));
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.8rem 1.4rem;
+  border-radius: calc(var(--radius) - 6px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.25s ease;
+}
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
 </head>
 <body>
-  <header>Zep 🔍</header>
+  <header>Zep</header>
   <main>
     <input id="search" type="text" placeholder="Search your sites..." autocomplete="off" />
     <div id="suggestion" class="suggestion"></div>
@@ -221,139 +200,136 @@
   </main>
   <div id="notification" class="notification"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-  <script>
-    const dataURL = "https://literallytech.github.io/Zep/data/index.json";
-    const votesURL = "https://literallytech.github.io/Zep/data/votes.json";
-    let entries = [];
-    let fuse;
-    let userVotes = {};
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+<script>
+const dataURL = "https://literallytech.github.io/Zep/data/index.json";
+const votesURL = "https://literallytech.github.io/Zep/data/votes.json";
+let entries = [];
+let fuse;
+let userVotes = {};
 
-    async function loadData() {
-      try {
-        const [dres, vres] = await Promise.all([
-          fetch(dataURL + "?t=" + Date.now()),
-          fetch(votesURL + "?t=" + Date.now())
-        ]);
-        const d = await dres.json();
-        const v = await vres.json();
-        entries = d.map(e => {
-          const vd = v.find(x => x.url === e.url);
-          return {
-            ...e,
-            voteScore: vd ? vd.score : 0,
-            positiveVotes: vd ? vd.positive : 0,
-            negativeVotes: vd ? vd.negative : 0
-          };
-        });
-        entries.sort((a, b) => b.voteScore - a.voteScore);
-        fuse = new Fuse(entries, {
-          keys: [
-            { name: "name", weight: 0.3 },
-            { name: "desc", weight: 0.2 },
-            { name: "keywords", weight: 0.15 },
-            { name: "title", weight: 0.15 },
-            { name: "content", weight: 0.15 },
-            { name: "headings", weight: 0.05 }
-          ],
-          threshold: 0.35,
-          includeScore: true,
-          shouldSort: true,
-          sortFn: (a, b) => {
-            if (a.item.voteScore !== b.item.voteScore)
-              return b.item.voteScore - a.item.voteScore;
-            return a.score - b.score;
-          }
-        });
-      } catch (err) {
-        document.getElementById("results").innerHTML =
-          "<p style='text-align:center;color:#aaa;'>Failed to load data.</p>";
-      }
-    }
+async function loadData() {
+  try {
+    const [dataRes, votesRes] = await Promise.all([
+      fetch(dataURL + "?t=" + Date.now()),
+      fetch(votesURL + "?t=" + Date.now())
+    ]);
+    const data = await dataRes.json();
+    const votes = await votesRes.json();
+    entries = data.map(entry => {
+      const voteData = votes.find(v => v.url === entry.url);
+      return {
+        ...entry,
+        voteScore: voteData ? voteData.score : 0,
+        positiveVotes: voteData ? voteData.positive : 0,
+        negativeVotes: voteData ? voteData.negative : 0
+      };
+    });
+    entries.sort((a, b) => b.voteScore - a.voteScore);
+    fuse = new Fuse(entries, {
+      keys: [
+        { name: "name", weight: 0.3 },
+        { name: "desc", weight: 0.2 },
+        { name: "keywords", weight: 0.15 },
+        { name: "title", weight: 0.15 },
+        { name: "content", weight: 0.15 },
+        { name: "headings", weight: 0.05 }
+      ],
+      threshold: 0.35,
+      includeScore: true
+    });
+  } catch (err) {
+    document.getElementById("results").innerHTML =
+      "<p style='text-align:center;color:#777;'>Failed to load data.</p>";
+  }
+}
 
-    function search(q) {
-      if (!q.trim()) {
-        document.getElementById("results").innerHTML = "";
-        document.getElementById("suggestion").innerHTML = "";
-        return;
-      }
-      const res = fuse.search(q);
-      const container = document.getElementById("results");
-      const sb = document.getElementById("suggestion");
-      if (!res.length) {
-        container.innerHTML = "<p style='text-align:center;color:#bbb;'>No results found.</p>";
-        sb.innerHTML = "";
-        return;
-      }
-      const best = res[0].item;
-      if (res[0].score > 0.25) {
-        sb.innerHTML = `Did you mean: <a onclick="setSearch('${best.name}')">${best.name}</a>?`;
-      } else {
-        sb.innerHTML = "";
-      }
-      container.innerHTML = res.map(r => {
-        const item = r.item;
-        const hv = userVotes[item.url];
-        return `
-          <div class="result">
-            <div class="result-header">
-              <div class="result-title">
-                <a href="${item.url}" target="_blank">${item.name}</a>
-                <div class="result-meta">
-                  ${item.pageType ? `<span class="page-type">${item.pageType}</span>` : ""}
-                  ${item.voteScore !== 0 ? `<span>Score: ${item.voteScore > 0 ? "+" : ""}${item.voteScore}</span>` : ""}
-                </div>
-                <p>${item.desc || item.description || item.title || ""}</p>
+function search(query) {
+  if (!query.trim()) {
+    document.getElementById("results").innerHTML = "";
+    document.getElementById("suggestion").innerHTML = "";
+    return;
+  }
+  const results = fuse.search(query);
+  const container = document.getElementById("results");
+  const suggestionBox = document.getElementById("suggestion");
+
+  if (!results.length) {
+    container.innerHTML = "<p style='text-align:center;color:#999;'>No results found.</p>";
+    suggestionBox.innerHTML = "";
+    return;
+  }
+
+  const bestMatch = results[0].item;
+  if (results[0].score > 0.25) {
+    suggestionBox.innerHTML = `Did you mean: <a onclick="setSearch('${bestMatch.name}')">${bestMatch.name}</a>?`;
+  } else {
+    suggestionBox.innerHTML = "";
+  }
+
+  container.innerHTML = results
+    .map(r => {
+      const item = r.item;
+      const hasVoted = userVotes[item.url];
+      return `
+        <div class="result">
+          <div class="result-header">
+            <div class="result-title">
+              <a href="${item.url}" target="_blank">${item.name}</a>
+              <div class="result-meta">
+                ${item.pageType ? `<span class="page-type">${item.pageType}</span>` : ''}
+                ${item.voteScore !== 0 ? `<span>Score: ${item.voteScore > 0 ? '+' : ''}${item.voteScore}</span>` : ''}
               </div>
-              <div class="vote-buttons">
-                <button class="vote-btn positive ${hv === 'positive' ? 'active' : ''}"
-                        onclick="vote('${item.url}', 'positive')" title="Helpful">
-                  <i class="fas fa-thumbs-up"></i>
-                </button>
-                <div class="vote-score">${item.positiveVotes || 0}</div>
-                <button class="vote-btn negative ${hv === 'negative' ? 'active' : ''}"
-                        onclick="vote('${item.url}', 'negative')" title="Not helpful">
-                  <i class="fas fa-thumbs-down"></i>
-                </button>
-                <div class="vote-score">${item.negativeVotes || 0}</div>
-              </div>
+              <p>${item.desc || item.description || item.title || ""}</p>
+            </div>
+            <div class="vote-buttons">
+              <button class="vote-btn positive ${hasVoted === 'positive' ? 'active' : ''}" onclick="vote('${item.url}', 'positive')">
+                <i class="fas fa-thumbs-up"></i>
+              </button>
+              <div class="vote-score">${item.positiveVotes || 0}</div>
+              <button class="vote-btn negative ${hasVoted === 'negative' ? 'active' : ''}" onclick="vote('${item.url}', 'negative')">
+                <i class="fas fa-thumbs-down"></i>
+              </button>
+              <div class="vote-score">${item.negativeVotes || 0}</div>
             </div>
           </div>
-        `;
-      }).join("");
-    }
+        </div>
+      `;
+    })
+    .join("");
+}
 
-    function vote(url, type) {
-      userVotes[url] = type;
-      document.querySelectorAll(".result").forEach(el => {
-        const link = el.querySelector("a").href;
-        if (link === url) {
-          el.querySelector(".vote-btn.positive").classList.toggle("active", type === 'positive');
-          el.querySelector(".vote-btn.negative").classList.toggle("active", type === 'negative');
-        }
-      });
-      showNotification("Your vote has been recorded!");
-      fetch("https://literallytech.github.io/Zep/api/collect-vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, type, timestamp: Date.now() })
-      });
+function vote(url, type) {
+  userVotes[url] = type;
+  document.querySelectorAll('.result').forEach(el => {
+    const link = el.querySelector('a').href;
+    if (link === url) {
+      el.querySelector('.vote-btn.positive').classList.toggle('active', type === 'positive');
+      el.querySelector('.vote-btn.negative').classList.toggle('active', type === 'negative');
     }
+  });
+  showNotification("Vote recorded");
+  fetch('https://literallytech.github.io/Zep/api/collect-vote', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, type, timestamp: Date.now() })
+  });
+}
 
-    function showNotification(msg) {
-      const n = document.getElementById("notification");
-      n.textContent = msg;
-      n.classList.add("show");
-      setTimeout(() => n.classList.remove("show"), 3000);
-    }
+function showNotification(message) {
+  const n = document.getElementById("notification");
+  n.textContent = message;
+  n.classList.add("show");
+  setTimeout(() => n.classList.remove("show"), 2500);
+}
 
-    function setSearch(t) {
-      document.getElementById("search").value = t;
-      search(t);
-    }
+function setSearch(text) {
+  document.getElementById("search").value = text;
+  search(text);
+}
 
-    document.getElementById("search").addEventListener("input", e => search(e.target.value));
-    loadData();
-  </script>
+document.getElementById("search").addEventListener("input", e => search(e.target.value));
+loadData();
+</script>
 </body>
 </html>
