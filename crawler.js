@@ -1,55 +1,145 @@
-// crawler.js
-import fetch from "node-fetch";
 import fs from "fs";
+import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 
-const sitesTxtURL = "https://raw.githubusercontent.com/LiterallyTech/Zep/main/data/sites.txt";
-const outputPath = "data/index.json";
+const SITES_FILE = "./data/sites.txt";
+const INDEX_FILE = "./data/index.json";
+const CRAWLED_FILE = "./data/crawled.json";
+const MAX_RANDOM_DISCOVERIES = 20;
 
-async function crawl() {
-  console.log("🕷️ Starting crawl...");
-  const res = await fetch(sitesTxtURL);
-  const text = await res.text();
+async function main() {
+  console.log("🕷️  Starting crawl...");
 
-  const blocks = text.trim().split(/\n\s*\n/);
-  const entries = [];
+  const baseSites = await readSitesFile();
+  const crawled = loadCrawledMemory();
 
-  for (const block of blocks) {
-    const entry = {};
-    for (const line of block.split("\n")) {
-      if (line.startsWith("Name:")) entry.name = line.replace("Name:", "").trim();
-      if (line.startsWith("URL:")) entry.url = line.replace("URL:", "").trim();
-      if (line.startsWith("Description:")) entry.desc = line.replace("Description:", "").trim();
+  console.log(`🌐 Found ${baseSites.length} base sites`);
+  const newIndex = [];
+
+  for (const site of baseSites) {
+    if (crawled.some((s) => s.url === site.url)) {
+      console.log(`⏩ Skipped (already indexed): ${site.name}`);
+      continue;
     }
 
-    if (!entry.url) continue;
+    const data = await crawlSite(site.url);
+    if (data) {
+      newIndex.push({ ...site, ...data });
+      crawled.push(site);
+      console.log(`✅ Indexed: ${site.name}`);
+    }
+    await delay(1000);
+  }
 
-    console.log(`🌐 Crawling: ${entry.url}`);
-    try {
-      const site = await fetch(entry.url, { timeout: 10000 });
-      const html = await site.text();
-      const $ = cheerio.load(html);
-
-      const title = $("title").text().trim() || entry.name;
-      const metaDesc = $('meta[name="description"]').attr("content")?.trim() || entry.desc;
-      const keywords = $('meta[name="keywords"]').attr("content")?.trim() || "";
-
-      entries.push({
-        name: entry.name,
-        url: entry.url,
-        desc: metaDesc,
-        title,
-        keywords,
-      });
-    } catch (err) {
-      console.warn("⚠️ Failed to fetch:", entry.url, "-", err.message);
-      entries.push(entry);
+  // 🌍 Discover new random links
+  const newDiscoveries = await discoverRandomSites(baseSites, MAX_RANDOM_DISCOVERIES);
+  for (const newSite of newDiscoveries) {
+    if (!crawled.some((s) => s.url === newSite.url)) {
+      crawled.push(newSite);
+      newIndex.push(newSite);
+      console.log(`✨ Discovered: ${newSite.url}`);
     }
   }
 
-  fs.mkdirSync("data", { recursive: true });
-  fs.writeFileSync(outputPath, JSON.stringify(entries, null, 2));
-  console.log(`✅ Done! Indexed ${entries.length} sites → ${outputPath}`);
+  // 💾 Save everything
+  fs.writeFileSync(INDEX_FILE, JSON.stringify(newIndex, null, 2));
+  fs.writeFileSync(CRAWLED_FILE, JSON.stringify(crawled, null, 2));
+  console.log(`✅ Done! Indexed ${newIndex.length} sites → ${INDEX_FILE}`);
 }
 
-crawl().catch(err => console.error("❌ Error during crawl:", err));
+async function readSitesFile() {
+  if (!fs.existsSync(SITES_FILE)) {
+    console.error(`❌ Missing ${SITES_FILE}`);
+    return [];
+  }
+
+  const text = fs.readFileSync(SITES_FILE, "utf-8").trim();
+  const blocks = text.split(/\n(?=Name:)/);
+  const sites = [];
+
+  for (const block of blocks) {
+    const name = block.match(/Name:\s*(.+)/)?.[1]?.trim();
+    const url = block.match(/URL:\s*(.+)/)?.[1]?.trim();
+    const desc = block.match(/Description:\s*(.+)/)?.[1]?.trim();
+    if (name && url) sites.push({ name, url, desc });
+  }
+  return sites;
+}
+
+function loadCrawledMemory() {
+  if (fs.existsSync(CRAWLED_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(CRAWLED_FILE, "utf-8"));
+      console.log(`🧠 Loaded ${data.length} previously crawled sites`);
+      return data;
+    } catch {
+      console.warn("⚠️ Could not parse crawled.json, starting fresh.");
+      return [];
+    }
+  }
+  return [];
+}
+
+async function crawlSite(url) {
+  try {
+    const res = await fetch(url, { timeout: 10000 });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+    const $ = cheerio.load(html);
+    const title = $("title").text().trim() || "";
+    const keywords = $('meta[name="keywords"]').attr("content") || "";
+    return { title, keywords };
+  } catch (err) {
+    console.warn(`⚠️  Skipped ${url}: ${err.message}`);
+    return null;
+  }
+}
+
+async function discoverRandomSites(baseSites, limit) {
+  const discovered = new Set();
+  const discoveredSites = [];
+
+  for (const site of baseSites) {
+    if (discoveredSites.length >= limit) break;
+
+    try {
+      const res = await fetch(site.url, { timeout: 8000 });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const $ = cheerio.load(html);
+
+      $("a[href]").each((_, el) => {
+        let href = $(el).attr("href");
+        if (!href) return;
+        if (href.startsWith("/") || href.startsWith("#")) return;
+        if (!href.startsWith("http")) return;
+
+        // Skip duplicates and obvious junk links
+        if (
+          href.match(/\.(jpg|png|pdf|zip|mp4|gif)$/i) ||
+          href.includes("login") ||
+          href.includes("signup") ||
+          href.includes("discord") ||
+          href.includes("utm_")
+        ) return;
+
+        if (!discovered.has(href)) {
+          discovered.add(href);
+          discoveredSites.push({
+            name: href.replace(/^https?:\/\//, "").split("/")[0],
+            url: href,
+            desc: "Discovered by crawler",
+          });
+        }
+      });
+    } catch {
+      continue;
+    }
+  }
+
+  return discoveredSites.slice(0, limit);
+}
+
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+main();

@@ -1,291 +1,387 @@
 Name: Stack Overflow
 URL: https://stackoverflow.com
 Description: Question and answer site for programmers and developers.
+
 Name: Mozilla Developer Network
 URL: https://developer.mozilla.org
 Description: Comprehensive web development documentation and learning resources.
+
 Name: W3Schools
 URL: https://www.w3schools.com
 Description: Web development tutorials and references for HTML, CSS, JavaScript, and more.
+
 Name: Reddit
 URL: https://www.reddit.com
 Description: Social news aggregation and discussion platform with communities on every topic.
+
 Name: Wikipedia
 URL: https://www.wikipedia.org
 Description: Free online encyclopedia with millions of articles in multiple languages.
+
 Name: YouTube
 URL: https://www.youtube.com
 Description: Video sharing platform for watching and uploading content.
+
 Name: Twitter
 URL: https://twitter.com
 Description: Social media platform for sharing short messages and updates.
+
 Name: LinkedIn
 URL: https://www.linkedin.com
 Description: Professional networking platform for career development and job searching.
+
 Name: Medium
 URL: https://medium.com
 Description: Online publishing platform for articles and blog posts.
+
 Name: Dev.to
 URL: https://dev.to
 Description: Community platform for developers to share articles and discussions.
+
 Name: Hacker News
 URL: https://news.ycombinator.com
 Description: Social news website focusing on computer science and entrepreneurship.
+
 Name: Product Hunt
 URL: https://www.producthunt.com
 Description: Platform for discovering new products and startups.
+
 Name: Dribbble
 URL: https://dribbble.com
 Description: Community for designers to showcase their work and get feedback.
+
 Name: Behance
 URL: https://www.behance.net
 Description: Adobe's platform for creative professionals to showcase portfolios.
+
 Name: CodePen
 URL: https://codepen.io
 Description: Online code editor and community for front-end developers.
+
 Name: JSFiddle
 URL: https://jsfiddle.net
 Description: Online IDE for testing and showcasing HTML, CSS, and JavaScript code.
+
 Name: Glitch
 URL: https://glitch.com
 Description: Platform for building and hosting web applications collaboratively.
+
 Name: Replit
 URL: https://replit.com
 Description: Online IDE supporting multiple programming languages with collaboration features.
+
 Name: GitLab
 URL: https://gitlab.com
 Description: DevOps platform with Git repository management and CI/CD pipelines.
+
 Name: Bitbucket
 URL: https://bitbucket.org
 Description: Git repository hosting service with built-in CI/CD tools.
+
 Name: npm
 URL: https://www.npmjs.com
 Description: Package manager and registry for JavaScript and Node.js libraries.
+
 Name: PyPI
 URL: https://pypi.org
 Description: Python Package Index for finding and installing Python packages.
+
 Name: Docker Hub
 URL: https://hub.docker.com
 Description: Container image registry for sharing and managing Docker images.
+
 Name: Kubernetes
 URL: https://kubernetes.io
 Description: Official site for the open-source container orchestration platform.
+
 Name: AWS
 URL: https://aws.amazon.com
 Description: Amazon Web Services cloud computing platform and services.
+
 Name: Google Cloud
 URL: https://cloud.google.com
 Description: Google's cloud computing services and infrastructure.
+
 Name: Microsoft Azure
 URL: https://azure.microsoft.com
 Description: Microsoft's cloud computing platform and services.
+
 Name: DigitalOcean
 URL: https://www.digitalocean.com
 Description: Cloud infrastructure provider for developers and businesses.
+
 Name: Heroku
 URL: https://www.heroku.com
 Description: Cloud platform for building, running, and operating applications.
+
 Name: Netlify
 URL: https://www.netlify.com
 Description: Platform for deploying and hosting modern web applications.
+
 Name: Vercel
 URL: https://vercel.com
 Description: Cloud platform for static sites and serverless functions.
+
 Name: Firebase
 URL: https://firebase.google.com
 Description: Google's platform for mobile and web application development.
+
 Name: Supabase
 URL: https://supabase.com
 Description: Open-source Firebase alternative with PostgreSQL database.
+
 Name: MongoDB
 URL: https://www.mongodb.com
 Description: NoSQL database platform and cloud services.
+
 Name: PostgreSQL
 URL: https://www.postgresql.org
 Description: Advanced open-source relational database system.
+
 Name: MySQL
 URL: https://www.mysql.com
 Description: Popular open-source relational database management system.
+
 Name: Redis
 URL: https://redis.io
 Description: In-memory data structure store used as database and cache.
+
 Name: Elasticsearch
 URL: https://www.elastic.co
 Description: Search and analytics engine for various data types.
+
 Name: Apache
 URL: https://www.apache.org
 Description: Apache Software Foundation hosting numerous open-source projects.
+
 Name: Node.js
 URL: https://nodejs.org
 Description: JavaScript runtime built on Chrome's V8 engine.
+
 Name: React
 URL: https://react.dev
 Description: JavaScript library for building user interfaces.
+
 Name: Vue.js
 URL: https://vuejs.org
 Description: Progressive JavaScript framework for building web interfaces.
+
 Name: Angular
 URL: https://angular.io
 Description: Platform for building web applications with TypeScript.
+
 Name: Svelte
 URL: https://svelte.dev
 Description: Component framework that compiles to efficient JavaScript.
+
 Name: Next.js
 URL: https://nextjs.org
 Description: React framework for production-grade applications.
+
 Name: Nuxt
 URL: https://nuxt.com
 Description: Vue.js framework for building full-stack applications.
+
 Name: Django
 URL: https://www.djangoproject.com
 Description: High-level Python web framework for rapid development.
+
 Name: Flask
 URL: https://flask.palletsprojects.com
 Description: Lightweight Python web framework for building applications.
+
 Name: Ruby on Rails
 URL: https://rubyonrails.org
 Description: Web application framework written in Ruby.
+
 Name: Laravel
 URL: https://laravel.com
 Description: PHP web framework for building modern applications.
+
 Name: Spring
 URL: https://spring.io
 Description: Java framework for building enterprise applications.
+
 Name: TensorFlow
 URL: https://www.tensorflow.org
 Description: Machine learning platform for building AI models.
+
 Name: PyTorch
 URL: https://pytorch.org
 Description: Machine learning framework for deep learning applications.
+
 Name: Scikit-learn
 URL: https://scikit-learn.org
 Description: Machine learning library for Python with simple tools.
+
 Name: Jupyter
 URL: https://jupyter.org
 Description: Web application for creating and sharing computational documents.
+
 Name: Kaggle
 URL: https://www.kaggle.com
 Description: Platform for data science competitions and datasets.
+
 Name: HuggingFace
 URL: https://huggingface.co
 Description: Platform for machine learning models and datasets.
+
 Name: Coursera
 URL: https://www.coursera.org
 Description: Online learning platform offering courses from universities.
+
 Name: edX
 URL: https://www.edx.org
 Description: Online learning platform with university-level courses.
+
 Name: Udemy
 URL: https://www.udemy.com
 Description: Online learning marketplace with thousands of courses.
+
 Name: Khan Academy
 URL: https://www.khanacademy.org
 Description: Free educational platform with lessons on various subjects.
+
 Name: FreeCodeCamp
 URL: https://www.freecodecamp.org
 Description: Free platform for learning web development and coding.
+
 Name: Codecademy
 URL: https://www.codecademy.com
 Description: Interactive platform for learning programming languages.
+
 Name: LeetCode
 URL: https://leetcode.com
 Description: Platform for practicing coding interview questions.
+
 Name: HackerRank
 URL: https://www.hackerrank.com
 Description: Technical skills assessment and coding challenges platform.
+
 Name: Codewars
 URL: https://www.codewars.com
 Description: Platform for improving coding skills through challenges.
+
 Name: Exercism
 URL: https://exercism.org
 Description: Free platform for learning programming languages with mentorship.
+
 Name: The Odin Project
 URL: https://www.theodinproject.com
 Description: Free full-stack web development curriculum.
+
 Name: CSS-Tricks
 URL: https://css-tricks.com
 Description: Web design and development articles focusing on CSS.
+
 Name: Smashing Magazine
 URL: https://www.smashingmagazine.com
 Description: Magazine for web designers and developers.
+
 Name: A List Apart
 URL: https://alistapart.com
 Description: Online magazine exploring web design and development.
+
 Name: SitePoint
 URL: https://www.sitepoint.com
 Description: Web development and design tutorials and books.
+
 Name: Can I Use
 URL: https://caniuse.com
 Description: Browser support tables for web technologies.
+
 Name: Regex101
 URL: https://regex101.com
 Description: Online regex tester and debugger with explanations.
+
 Name: JSONLint
 URL: https://jsonlint.com
 Description: JSON validator and formatter tool.
+
 Name: Postman
 URL: https://www.postman.com
 Description: API development and testing platform.
+
 Name: Insomnia
 URL: https://insomnia.rest
 Description: API client for testing and debugging REST and GraphQL.
+
 Name: Swagger
 URL: https://swagger.io
 Description: Tools for designing and documenting RESTful APIs.
+
 Name: GraphQL
 URL: https://graphql.org
 Description: Query language for APIs and runtime for executing queries.
+
 Name: Figma
 URL: https://www.figma.com
 Description: Collaborative interface design tool in the browser.
+
 Name: Adobe XD
 URL: https://www.adobe.com/products/xd.html
 Description: Vector-based design tool for user experience and interface.
+
 Name: Sketch
 URL: https://www.sketch.com
 Description: Digital design toolkit for creating interfaces.
+
 Name: Canva
 URL: https://www.canva.com
 Description: Graphic design platform for creating visual content.
+
 Name: Unsplash
 URL: https://unsplash.com
 Description: Free high-resolution photography for commercial use.
+
 Name: Pexels
 URL: https://www.pexels.com
 Description: Free stock photos and videos for creative projects.
+
 Name: Font Awesome
 URL: https://fontawesome.com
 Description: Icon library and toolkit for web projects.
+
 Name: Google Fonts
 URL: https://fonts.google.com
 Description: Library of free licensed fonts for web use.
+
 Name: Tailwind CSS
 URL: https://tailwindcss.com
 Description: Utility-first CSS framework for rapid UI development.
+
 Name: Bootstrap
 URL: https://getbootstrap.com
 Description: Popular CSS framework for responsive web design.
+
 Name: Material UI
 URL: https://mui.com
 Description: React component library implementing Material Design.
+
 Name: Ant Design
 URL: https://ant.design
 Description: Enterprise-class UI design system and React components.
+
 Name: Sass
 URL: https://sass-lang.com
 Description: CSS preprocessor with variables and nested rules.
+
 Name: Less
 URL: https://lesscss.org
 Description: CSS preprocessor extending CSS with dynamic behavior.
+
 Name: Webpack
 URL: https://webpack.js.org
 Description: Module bundler for modern JavaScript applications.
+
 Name: Vite
 URL: https://vitejs.dev
 Description: Fast build tool and development server for modern web projects.
+
 Name: Babel
 URL: https://babeljs.io
 Description: JavaScript compiler for using next-generation syntax.
+
 Name: ESLint
 URL: https://eslint.org
 Description: Pluggable linting utility for JavaScript and JSX.
