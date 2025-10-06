@@ -5,6 +5,7 @@ import * as cheerio from "cheerio";
 const SITES_FILE = "./data/sites.txt";
 const INDEX_FILE = "./data/index.json";
 const CRAWLED_FILE = "./data/crawled.json";
+const VOTES_FILE = "./data/votes.json";
 const MAX_RANDOM_DISCOVERIES = 20;
 
 async function main() {
@@ -12,6 +13,7 @@ async function main() {
 
   const baseSites = await readSitesFile();
   const crawled = loadCrawledMemory();
+  const votes = loadVotes();
 
   console.log(`🌐 Found ${baseSites.length} base sites`);
   const newIndex = [];
@@ -24,7 +26,19 @@ async function main() {
 
     const data = await crawlSite(site.url);
     if (data) {
-      newIndex.push({ ...site, ...data });
+      // Check if we have existing votes for this URL
+      const existingVotes = votes.find(v => v.url === site.url);
+      const voteScore = existingVotes ? existingVotes.score : 0;
+      const positiveVotes = existingVotes ? existingVotes.positive : 0;
+      const negativeVotes = existingVotes ? existingVotes.negative : 0;
+      
+      newIndex.push({ 
+        ...site, 
+        ...data, 
+        voteScore,
+        positiveVotes,
+        negativeVotes
+      });
       crawled.push(site);
       console.log(`✅ Indexed: ${site.name}`);
     }
@@ -36,7 +50,13 @@ async function main() {
   for (const newSite of newDiscoveries) {
     if (!crawled.some((s) => s.url === newSite.url)) {
       crawled.push(newSite);
-      newIndex.push(newSite);
+      // New discoveries start with a neutral score
+      newIndex.push({ 
+        ...newSite, 
+        voteScore: 0,
+        positiveVotes: 0,
+        negativeVotes: 0
+      });
       console.log(`✨ Discovered: ${newSite.url}`);
     }
   }
@@ -45,6 +65,111 @@ async function main() {
   fs.writeFileSync(INDEX_FILE, JSON.stringify(newIndex, null, 2));
   fs.writeFileSync(CRAWLED_FILE, JSON.stringify(crawled, null, 2));
   console.log(`✅ Done! Indexed ${newIndex.length} sites → ${INDEX_FILE}`);
+}
+
+function loadVotes() {
+  if (fs.existsSync(VOTES_FILE)) {
+    try {
+      return JSON.parse(fs.readFileSync(VOTES_FILE, "utf-8"));
+    } catch {
+      console.warn("⚠️ Could not parse votes.json, starting fresh.");
+      return [];
+    }
+  }
+  return [];
+}
+
+async function crawlSite(url) {
+  try {
+    const res = await fetch(url, { timeout: 10000 });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+    const $ = cheerio.load(html);
+    
+    // Basic metadata
+    const title = $("title").text().trim() || "";
+    const keywords = $('meta[name="keywords"]').attr("content") || "";
+    const description = $('meta[name="description"]').attr("content") || "";
+    
+    // Extract main content
+    let mainContent = "";
+    
+    // Try to find main content area
+    const mainSelectors = [
+      "main", 
+      "article", 
+      '[role="main"]',
+      ".content",
+      ".main-content",
+      "#content",
+      "#main"
+    ];
+    
+    let contentElement = null;
+    for (const selector of mainSelectors) {
+      contentElement = $(selector);
+      if (contentElement.length) break;
+    }
+    
+    // If no main content area found, use body
+    if (!contentElement || !contentElement.length) {
+      contentElement = $("body");
+    }
+    
+    // Extract text from headings and paragraphs
+    const headings = contentElement.find("h1, h2, h3").map((_, el) => $(el).text().trim()).get();
+    const paragraphs = contentElement.find("p").map((_, el) => $(el).text().trim()).get();
+    
+    // Combine headings and first few paragraphs
+    mainContent = [...headings, ...paragraphs.slice(0, 3)].join(" ").substring(0, 500);
+    
+    // Extract structured data if available
+    const structuredData = extractStructuredData($);
+    
+    // Determine page type/category
+    const pageType = determinePageType($, url);
+    
+    return { 
+      title, 
+      keywords, 
+      description,
+      content: mainContent,
+      headings,
+      pageType,
+      structuredData
+    };
+  } catch (err) {
+    console.warn(`⚠️  Skipped ${url}: ${err.message}`);
+    return null;
+  }
+}
+
+function extractStructuredData($) {
+  try {
+    const scripts = $('script[type="application/ld+json"]');
+    if (scripts.length) {
+      return JSON.parse(scripts.first().text());
+    }
+  } catch (e) {
+    // Ignore parsing errors
+  }
+  return null;
+}
+
+function determinePageType($, url) {
+  // Check URL patterns first
+  if (url.includes("/docs/") || url.includes("/documentation/")) return "documentation";
+  if (url.includes("/blog/") || url.includes("/news/")) return "blog";
+  if (url.includes("/tutorial/") || url.includes("/learn/")) return "tutorial";
+  if (url.includes("/product/") || url.includes("/service/")) return "product";
+  
+  // Check content patterns
+  const text = $("body").text().toLowerCase();
+  if (text.includes("tutorial") || text.includes("how to")) return "tutorial";
+  if (text.includes("documentation") || text.includes("api reference")) return "documentation";
+  if (text.includes("blog") || text.includes("news")) return "blog";
+  
+  return "general";
 }
 
 async function readSitesFile() {
@@ -78,21 +203,6 @@ function loadCrawledMemory() {
     }
   }
   return [];
-}
-
-async function crawlSite(url) {
-  try {
-    const res = await fetch(url, { timeout: 10000 });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
-    const $ = cheerio.load(html);
-    const title = $("title").text().trim() || "";
-    const keywords = $('meta[name="keywords"]').attr("content") || "";
-    return { title, keywords };
-  } catch (err) {
-    console.warn(`⚠️  Skipped ${url}: ${err.message}`);
-    return null;
-  }
 }
 
 async function discoverRandomSites(baseSites, limit) {
@@ -129,6 +239,9 @@ async function discoverRandomSites(baseSites, limit) {
             name: href.replace(/^https?:\/\//, "").split("/")[0],
             url: href,
             desc: "Discovered by crawler",
+            voteScore: 0,
+            positiveVotes: 0,
+            negativeVotes: 0
           });
         }
       });

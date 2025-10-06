@@ -314,10 +314,6 @@ Name: GraphQL
 URL: https://graphql.org
 Description: Query language for APIs and runtime for executing queries.
 
-Name: Figma
-URL: https://www.figma.com
-Description: Collaborative interface design tool in the browser.
-
 Name: Adobe XD
 URL: https://www.adobe.com/products/xd.html
 Description: Vector-based design tool for user experience and interface.

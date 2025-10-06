@@ -1,0 +1,25 @@
+{
+  "name": "zep",
+  "version": "1.0.0",
+  "description": "",
+  "main": "crawler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LiterallyTech/Zep.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/LiterallyTech/Zep/issues"
+  },
+  "homepage": "https://github.com/LiterallyTech/Zep#readme",
+  "dependencies": {
+    "cheerio": "^1.1.2",
+    "node-fetch": "^3.3.2"
+  }
+}

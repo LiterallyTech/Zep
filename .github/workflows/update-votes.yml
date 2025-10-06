@@ -1,0 +1,162 @@
+name: Update Votes
+
+on:
+  schedule:
+    # Run once per hour
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  update-votes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Process votes from GitHub Issues
+        run: |
+          # Create a script to process votes from GitHub Issues
+          cat > process-votes.js << 'EOF'
+          const https = require('https');
+          const fs = require('fs');
+          
+          const config = {
+            owner: 'LiterallyTech',
+            repo: 'Zep',
+            token: process.env.GITHUB_TOKEN
+          };
+          
+          async function getVotesFromIssues() {
+            return new Promise((resolve, reject) => {
+              const options = {
+                hostname: 'api.github.com',
+                path: `/repos/${config.owner}/${config.repo}/issues?state=open&labels=vote`,
+                method: 'GET',
+                headers: {
+                  'User-Agent': 'Zep-Vote-Processor',
+                  'Authorization': `token ${config.token}`
+                }
+              };
+              
+              const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => {
+                  if (res.statusCode === 200) {
+                    resolve(JSON.parse(data));
+                  } else {
+                    reject(new Error(`GitHub API error: ${res.statusCode}`));
+                  }
+                });
+              });
+              
+              req.on('error', reject);
+              req.end();
+            });
+          }
+          
+          async function processVotes() {
+            try {
+              // Load current votes
+              let votes = [];
+              if (fs.existsSync('./data/votes.json')) {
+                votes = JSON.parse(fs.readFileSync('./data/votes.json', 'utf-8'));
+              }
+              
+              // Get votes from issues
+              const issues = await getVotesFromIssues();
+              
+              // Process each issue as a vote
+              for (const issue of issues) {
+                try {
+                  const voteData = JSON.parse(issue.body);
+                  const { url, type } = voteData;
+                  
+                  // Find or create vote entry
+                  let voteEntry = votes.find(v => v.url === url);
+                  if (!voteEntry) {
+                    voteEntry = { url, positive: 0, negative: 0, score: 0 };
+                    votes.push(voteEntry);
+                  }
+                  
+                  // Update vote counts
+                  if (type === 'positive') {
+                    voteEntry.positive++;
+                  } else {
+                    voteEntry.negative++;
+                  }
+                  
+                  // Calculate score
+                  voteEntry.score = voteEntry.positive - voteEntry.negative;
+                  
+                  // Close the issue to prevent double counting
+                  await closeIssue(issue.number);
+                } catch (e) {
+                  console.error(`Error processing issue ${issue.number}:`, e.message);
+                }
+              }
+              
+              // Save updated votes
+              fs.writeFileSync('./data/votes.json', JSON.stringify(votes, null, 2));
+              console.log(`Processed ${issues.length} votes`);
+              
+            } catch (error) {
+              console.error('Error processing votes:', error);
+            }
+          }
+          
+          function closeIssue(issueNumber) {
+            return new Promise((resolve, reject) => {
+              const options = {
+                hostname: 'api.github.com',
+                path: `/repos/${config.owner}/${config.repo}/issues/${issueNumber}`,
+                method: 'PATCH',
+                headers: {
+                  'User-Agent': 'Zep-Vote-Processor',
+                  'Authorization': `token ${config.token}`,
+                  'Content-Type': 'application/json'
+                }
+              };
+              
+              const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => {
+                  if (res.statusCode === 200) {
+                    resolve(JSON.parse(data));
+                  } else {
+                    reject(new Error(`GitHub API error: ${res.statusCode}`));
+                  }
+                });
+              });
+              
+              req.on('error', reject);
+              
+              const body = JSON.stringify({ state: 'closed' });
+              req.write(body);
+              req.end();
+            });
+          }
+          
+          processVotes();
+          EOF
+          
+          # Run the script
+          node process-votes.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/votes.json
+          git diff --staged --quiet || git commit -m "Update votes from user feedback [skip ci]"
+          git push
