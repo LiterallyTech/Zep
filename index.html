@@ -1,233 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="zepSearch()">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zep Search Engine</title>
+  <title>Zep Search</title>
+
+  <!-- 🧩 Libraries -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.min.js"></script>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f5f7;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background-color: #f4f5f7;
     }
-    header {
-      background: #111;
-      color: #fff;
-      width: 100%;
-      padding: 1rem 0;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    main {
-      max-width: 700px;
-      width: 90%;
-      margin-top: 2rem;
-    }
-    input {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      outline: none;
-      transition: 0.2s;
-    }
-    input:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
-    }
-    .result {
-      background: #fff;
-      padding: 1rem 1.5rem;
-      border-radius: 10px;
-      margin: 1rem 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      transition: 0.2s;
-    }
-    .result:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    .result a {
-      text-decoration: none;
-      color: #007bff;
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    .result p {
-      margin-top: 0.5rem;
-      color: #333;
-      font-size: 0.95rem;
-    }
-    mark {
-      background: #ffeb3b;
-      padding: 0 2px;
-      border-radius: 3px;
-    }
-    #results p.no-results {
-      text-align: center;
-      color: #777;
-      font-size: 1rem;
-    }
-    #suggestion {
-      text-align: center;
-      color: #555;
-      font-size: 0.95rem;
-      margin-top: 0.5rem;
-      font-style: italic;
-    }
-    #suggestion span {
-      color: #007bff;
+    .didyoumean span {
+      color: #2563eb;
       cursor: pointer;
+      font-weight: 600;
+    }
+    .didyoumean span:hover {
       text-decoration: underline;
-      font-weight: bold;
     }
   </style>
 </head>
-<body>
-  <header>Zep 🔍</header>
+<body class="flex flex-col items-center min-h-screen">
 
-  <main>
-    <input id="search" type="text" placeholder="Search your sites..." />
-    <div id="suggestion"></div>
-    <div id="results"></div>
+  <!-- Header -->
+  <header class="bg-gray-900 text-white w-full text-center py-4 text-2xl font-bold shadow-md">
+    Zep 🔍
+  </header>
+
+  <!-- Search Box -->
+  <main class="mt-10 w-full max-w-2xl px-4">
+    <input
+      x-model="query"
+      @input="search"
+      type="text"
+      placeholder="Search your sites..."
+      class="w-full p-3 border-2 border-gray-300 rounded-xl shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+    >
+
+    <p x-show="suggestion" class="didyoumean text-gray-600 mt-2 italic animate__animated animate__fadeIn">
+      Did you mean: <span @click="applySuggestion(suggestion)" x-text="suggestion"></span>?
+    </p>
+
+    <div id="results" class="mt-6 space-y-4 animate__animated animate__fadeIn"></div>
   </main>
-
-  <!-- ✅ Fuse.js for smart fuzzy search -->
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
-  <!-- ✅ Mark.js for text highlighting -->
-  <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.min.js"></script>
 
   <script>
     const dataURL = "https://cdn.jsdelivr.net/gh/LiterallyTech/Zep@main/data/sites.txt";
-    let entries = [];
-    let fuse;
 
-    async function loadData() {
-      try {
-        const res = await fetch(dataURL);
-        const text = await res.text();
-        parseEntries(text);
-        initFuse();
-        console.log(`Loaded ${entries.length} entries.`);
-      } catch (err) {
-        console.error("Failed to load data:", err);
-        document.getElementById("results").innerHTML =
-          "<p class='no-results'>Failed to load data from GitHub.</p>";
-      }
-    }
+    function zepSearch() {
+      return {
+        query: "",
+        suggestion: "",
+        entries: [],
+        fuse: null,
 
-    function parseEntries(text) {
-      const blocks = text.trim().split(/\n\s*\n/);
-      for (const block of blocks) {
-        const entry = {};
-        for (const line of block.split("\n")) {
-          if (line.startsWith("Name:")) entry.name = line.replace("Name:", "").trim();
-          if (line.startsWith("URL:")) entry.url = line.replace("URL:", "").trim();
-          if (line.startsWith("Description:")) entry.desc = line.replace("Description:", "").trim();
+        async search() {
+          const q = this.query.trim();
+          const resultsDiv = document.getElementById("results");
+          const markInstance = new Mark(resultsDiv);
+          markInstance.unmark();
+          resultsDiv.innerHTML = "";
+
+          if (!q) return;
+
+          // 🌀 Always fetch the latest data from GitHub each search
+          try {
+            const res = await fetch(dataURL + "?_=" + Date.now());
+            const text = await res.text();
+            this.parseEntries(text);
+
+            if (this.entries.length === 0) {
+              resultsDiv.innerHTML = `<p class='text-gray-500 text-center'>No sites found in data file.</p>`;
+              return;
+            }
+
+            this.fuse = new Fuse(this.entries, {
+              keys: ["name", "desc"],
+              threshold: 0.4,
+              includeScore: true
+            });
+
+            const results = this.fuse.search(q);
+
+            if (results.length === 0) {
+              this.showSuggestion(q, resultsDiv);
+              return;
+            }
+
+            // Display results
+            resultsDiv.innerHTML = results.map(r => `
+              <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition transform hover:-translate-y-0.5">
+                <a href="${r.item.url}" target="_blank" class="text-blue-600 font-semibold text-lg hover:underline">
+                  ${r.item.name}
+                </a>
+                <p class="text-gray-700 mt-1">${r.item.desc}</p>
+              </div>
+            `).join("");
+
+            // Highlight keywords
+            markInstance.mark(q, { separateWordSearch: true });
+
+            // Suggest if slightly off
+            this.showSuggestion(q, resultsDiv, results);
+          } catch (err) {
+            console.error("Failed to load data:", err);
+            resultsDiv.innerHTML = `<p class='text-center text-red-500'>Failed to fetch data from GitHub.</p>`;
+          }
+        },
+
+        parseEntries(text) {
+          this.entries = [];
+          const blocks = text.trim().split(/\n\s*\n/);
+          for (const block of blocks) {
+            const entry = {};
+            for (const line of block.split("\n")) {
+              if (line.startsWith("Name:")) entry.name = line.replace("Name:", "").trim();
+              if (line.startsWith("URL:")) entry.url = line.replace("URL:", "").trim();
+              if (line.startsWith("Description:")) entry.desc = line.replace("Description:", "").trim();
+            }
+            if (entry.name && entry.url && entry.desc) this.entries.push(entry);
+          }
+        },
+
+        showSuggestion(q, resultsDiv, results = []) {
+          const allWords = this.entries.flatMap(e =>
+            (e.name + " " + e.desc).toLowerCase().split(/\s+/)
+          );
+          const suggestion = this.findClosestWord(q.toLowerCase(), allWords);
+          if (suggestion && suggestion !== q.toLowerCase()) {
+            this.suggestion = suggestion;
+          } else {
+            this.suggestion = "";
+          }
+          if (!results.length) {
+            resultsDiv.innerHTML = "<p class='text-gray-500 text-center'>No results found.</p>";
+          }
+        },
+
+        applySuggestion(s) {
+          this.query = s;
+          this.search();
+        },
+
+        findClosestWord(word, list) {
+          let minDist = Infinity;
+          let best = "";
+          for (const w of list) {
+            const d = this.levenshtein(word, w);
+            if (d < minDist) {
+              minDist = d;
+              best = w;
+            }
+          }
+          return minDist <= 2 ? best : "";
+        },
+
+        levenshtein(a, b) {
+          const matrix = Array.from({ length: a.length + 1 }, () => []);
+          for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+          for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+          for (let i = 1; i <= a.length; i++) {
+            for (let j = 1; j <= b.length; j++) {
+              const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+              matrix[i][j] = Math.min(
+                matrix[i - 1][j] + 1,
+                matrix[i][j - 1] + 1,
+                matrix[i - 1][j - 1] + cost
+              );
+            }
+          }
+          return matrix[a.length][b.length];
         }
-        if (entry.name && entry.url && entry.desc) entries.push(entry);
-      }
+      };
     }
-
-    function initFuse() {
-      fuse = new Fuse(entries, {
-        keys: ["name", "desc"],
-        includeScore: true,
-        threshold: 0.4, // lower = stricter
-      });
-    }
-
-    function search(query) {
-      const q = query.trim();
-      const suggestionDiv = document.getElementById("suggestion");
-      const resultsDiv = document.getElementById("results");
-      suggestionDiv.innerHTML = "";
-
-      if (!q) {
-        resultsDiv.innerHTML = "";
-        return;
-      }
-
-      const results = fuse.search(q);
-      if (results.length === 0) {
-        // 🔍 "Did you mean" suggestion
-        const words = entries.flatMap(e =>
-          (e.name + " " + e.desc).toLowerCase().split(/\s+/)
-        );
-        const suggestion = findClosestWord(q.toLowerCase(), words);
-        if (suggestion) {
-          suggestionDiv.innerHTML = `Did you mean: <span onclick="applySuggestion('${suggestion}')">${suggestion}</span>?`;
-        }
-        resultsDiv.innerHTML = "<p class='no-results'>No results found.</p>";
-        return;
-      }
-
-      resultsDiv.innerHTML = results
-        .map(
-          r => `
-          <div class="result">
-            <a href="${r.item.url}" target="_blank">${r.item.name}</a>
-            <p>${r.item.desc}</p>
-          </div>
-        `
-        )
-        .join("");
-
-      // highlight matching words
-      const markInstance = new Mark(resultsDiv);
-      markInstance.mark(q, { separateWordSearch: true });
-    }
-
-    function findClosestWord(term, words) {
-      let best = null;
-      let bestDist = Infinity;
-      for (const w of words) {
-        const d = levenshtein(term, w);
-        if (d < bestDist) {
-          bestDist = d;
-          best = w;
-        }
-      }
-      return bestDist <= 2 ? best : null;
-    }
-
-    function levenshtein(a, b) {
-      const matrix = [];
-      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-      for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-          matrix[i][j] =
-            b.charAt(i - 1) === a.charAt(j - 1)
-              ? matrix[i - 1][j - 1]
-              : Math.min(
-                  matrix[i - 1][j - 1] + 1,
-                  matrix[i][j - 1] + 1,
-                  matrix[i - 1][j] + 1
-                );
-        }
-      }
-      return matrix[b.length][a.length];
-    }
-
-    function applySuggestion(s) {
-      const input = document.getElementById("search");
-      input.value = s;
-      search(s);
-    }
-
-    document.getElementById("search").addEventListener("input", e => {
-      search(e.target.value);
-    });
-
-    loadData();
   </script>
 </body>
 </html>
