@@ -21,134 +21,134 @@
   </div>
 
   <script>
-    const dataURL = "https://raw.githubusercontent.com/LiterallyTech/Zep/refs/heads/main/data/sites.txt";
+  const baseDataURL = "https://raw.githubusercontent.com/LiterallyTech/Zep/refs/heads/main/data/sites.txt";
 
-    const zep = {
-      query: "",
-      entries: [],
-      fuse: null,
+  const zep = {
+    query: "",
+    entries: [],
+    fuse: null,
 
-      async search() {
-        this.query = document.getElementById("searchBox").value.trim();
-        const resultsDiv = document.getElementById("results");
-        const suggestionDiv = document.getElementById("suggestion");
-        const markInstance = new Mark(resultsDiv);
-        markInstance.unmark();
-        resultsDiv.innerHTML = "";
-        suggestionDiv.innerHTML = "";
+    async search() {
+      this.query = document.getElementById("searchBox").value.trim();
+      const resultsDiv = document.getElementById("results");
+      const suggestionDiv = document.getElementById("suggestion");
+      const markInstance = new Mark(resultsDiv);
+      markInstance.unmark();
+      resultsDiv.innerHTML = "";
+      suggestionDiv.innerHTML = "";
 
-        if (!this.query) return;
+      if (!this.query) return;
 
-        try {
-          // 🚫 Force fresh fetch every search
-          const res = await fetch(dataURL, {
-            cache: "no-store",
-            headers: {
-              "Cache-Control": "no-cache, no-store, must-revalidate",
-              Pragma: "no-cache",
-              Expires: "0"
-            }
-          });
-
-          if (!res.ok) throw new Error("Failed to fetch data");
-
-          const text = await res.text();
-          this.entries = this.parseEntries(text);
-
-          if (this.entries.length === 0) {
-            resultsDiv.innerHTML = `<p class="text-gray-500 text-center">No sites found in data file.</p>`;
-            return;
+      try {
+        // 🚀 Add cache-busting timestamp
+        const dataURL = `${baseDataURL}?t=${Date.now()}`;
+        const res = await fetch(dataURL, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0"
           }
+        });
 
-          this.fuse = new Fuse(this.entries, {
-            keys: ["name", "desc"],
-            threshold: 0.4,
-            includeScore: true
-          });
+        if (!res.ok) throw new Error("Failed to fetch data");
 
-          const results = this.fuse.search(this.query);
+        const text = await res.text();
+        this.entries = this.parseEntries(text);
 
-          if (results.length === 0) {
-            this.showSuggestion(this.query, suggestionDiv);
-            resultsDiv.innerHTML = `<p class="text-gray-500 text-center">No results found.</p>`;
-            return;
-          }
-
-          // 🧭 Display search results
-          resultsDiv.innerHTML = results.map(r => `
-            <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition transform hover:-translate-y-0.5">
-              <a href="${r.item.url}" target="_blank"
-                 class="text-blue-600 font-semibold text-lg hover:underline">
-                ${r.item.name}
-              </a>
-              <p class="text-gray-700 mt-1">${r.item.desc}</p>
-            </div>
-          `).join("");
-
-          markInstance.mark(this.query, { separateWordSearch: true });
-
-        } catch (err) {
-          console.error(err);
-          resultsDiv.innerHTML = `<p class="text-center text-red-500">Failed to load data from GitHub.</p>`;
+        if (this.entries.length === 0) {
+          resultsDiv.innerHTML = `<p class="text-gray-500 text-center">No sites found in data file.</p>`;
+          return;
         }
-      },
 
-      parseEntries(text) {
-        const blocks = text.trim().split(/\n(?=Name:)/);
-        return blocks.map(block => {
-          const name = block.match(/Name:\s*(.*)/)?.[1]?.trim();
-          const url = block.match(/URL:\s*(.*)/)?.[1]?.trim();
-          const desc = block.match(/Description:\s*(.*)/)?.[1]?.trim();
-          return name && url && desc ? { name, url, desc } : null;
-        }).filter(Boolean);
-      },
+        this.fuse = new Fuse(this.entries, {
+          keys: ["name", "desc"],
+          threshold: 0.4,
+          includeScore: true
+        });
 
-      showSuggestion(q, suggestionDiv) {
-        const allWords = this.entries.flatMap(e =>
-          (e.name + " " + e.desc).toLowerCase().split(/\s+/)
-        );
-        const suggestion = this.findClosestWord(q.toLowerCase(), allWords);
-        if (suggestion && suggestion !== q.toLowerCase()) {
-          suggestionDiv.innerHTML = `Did you mean: 
-            <button class="text-blue-600 underline" onclick="zep.applySuggestion('${suggestion}')">${suggestion}</button>?`;
+        const results = this.fuse.search(this.query);
+
+        if (results.length === 0) {
+          this.showSuggestion(this.query, suggestionDiv);
+          resultsDiv.innerHTML = `<p class="text-gray-500 text-center">No results found.</p>`;
+          return;
         }
-      },
 
-      applySuggestion(s) {
-        document.getElementById("searchBox").value = s;
-        this.search();
-      },
+        resultsDiv.innerHTML = results.map(r => `
+          <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition transform hover:-translate-y-0.5">
+            <a href="${r.item.url}" target="_blank"
+               class="text-blue-600 font-semibold text-lg hover:underline">
+              ${r.item.name}
+            </a>
+            <p class="text-gray-700 mt-1">${r.item.desc}</p>
+          </div>
+        `).join("");
 
-      findClosestWord(word, list) {
-        let minDist = Infinity;
-        let best = "";
-        for (const w of list) {
-          const d = this.levenshtein(word, w);
-          if (d < minDist) {
-            minDist = d;
-            best = w;
-          }
-        }
-        return minDist <= 2 ? best : "";
-      },
+        markInstance.mark(this.query, { separateWordSearch: true });
 
-      levenshtein(a, b) {
-        const matrix = Array.from({ length: a.length + 1 }, () => []);
-        for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
-        for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
-        for (let i = 1; i <= a.length; i++) {
-          for (let j = 1; j <= b.length; j++) {
-            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-            matrix[i][j] = Math.min(
-              matrix[i - 1][j] + 1,
-              matrix[i][j - 1] + 1,
-              matrix[i - 1][j - 1] + cost
-            );
-          }
-        }
-        return matrix[a.length][b.length];
+      } catch (err) {
+        console.error(err);
+        resultsDiv.innerHTML = `<p class="text-center text-red-500">Failed to load data from GitHub.</p>`;
       }
-    };
-  </script>
+    },
+
+    parseEntries(text) {
+      const blocks = text.trim().split(/\n(?=Name:)/);
+      return blocks.map(block => {
+        const name = block.match(/Name:\s*(.*)/)?.[1]?.trim();
+        const url = block.match(/URL:\s*(.*)/)?.[1]?.trim();
+        const desc = block.match(/Description:\s*(.*)/)?.[1]?.trim();
+        return name && url && desc ? { name, url, desc } : null;
+      }).filter(Boolean);
+    },
+
+    showSuggestion(q, suggestionDiv) {
+      const allWords = this.entries.flatMap(e =>
+        (e.name + " " + e.desc).toLowerCase().split(/\s+/)
+      );
+      const suggestion = this.findClosestWord(q.toLowerCase(), allWords);
+      if (suggestion && suggestion !== q.toLowerCase()) {
+        suggestionDiv.innerHTML = `Did you mean: 
+          <button class="text-blue-600 underline" onclick="zep.applySuggestion('${suggestion}')">${suggestion}</button>?`;
+      }
+    },
+
+    applySuggestion(s) {
+      document.getElementById("searchBox").value = s;
+      this.search();
+    },
+
+    findClosestWord(word, list) {
+      let minDist = Infinity;
+      let best = "";
+      for (const w of list) {
+        const d = this.levenshtein(word, w);
+        if (d < minDist) {
+          minDist = d;
+          best = w;
+        }
+      }
+      return minDist <= 2 ? best : "";
+    },
+
+    levenshtein(a, b) {
+      const matrix = Array.from({ length: a.length + 1 }, () => []);
+      for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+      for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return matrix[a.length][b.length];
+    }
+  };
+</script>
 </body>
 </html>
