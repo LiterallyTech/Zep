@@ -1,537 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zep Search Engine</title>
-  <link href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css" rel="stylesheet">
-  <style>
-    /* ---------- Design tokens ---------- */
-    :root{
-      --bg-1: #0e1113;
-      --bg-2: #15181a;
-      --panel-tint: rgba(255,255,255,0.06); /* subtle white tint for glass */
-      --panel-border: rgba(255,255,255,0.14);
-      --text-main: #e7e7ea;
-      --text-sub: #bfc1c4;
-      --accent: #5aa8ff;
-      --radius: 12px;          /* gentle rounding */
-      --blur: 18px;            /* backdrop blur intensity (fallback-aware) */
-      --distort-max: 6;        /* maximum displacement scale (px equivalent) */
-    }
+<meta charset="utf-8" />
+<title>Zep Search Engine</title>
+<style>
+body {
+background-color: #f0f0f0;
+font-family: Arial, Helvetica, sans-serif;
+margin: 0;
+padding: 10px;
+color: #333;
+}
 
-    /* ---------- Page base ---------- */
-    html,body { height:100%; }
-    body{
-      display:flex;
-      justify-content:center;
-      background: linear-gradient(120deg, var(--bg-1) 0%, var(--bg-2) 100%);
-      color:var(--text-main);
-      font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin:0;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      -webkit-tap-highlight-color: transparent;
-      padding:40px 16px;
-    }
+.container {
+max-width: 800px;
+margin: 0 auto;
+background-color: #fff;
+border: 1px solid #ccc;
+padding: 15px;
+}
 
-    /* ---------- Layout ---------- */
-    .shell {
-      width: 100%;
-      max-width: 820px;
-      display: block;
-    }
+.header {
+background-color: #3366cc;
+color: white;
+padding: 10px;
+font-size: 24px;
+font-weight: bold;
+text-align: center;
+margin-bottom: 15px;
+border: 1px solid #3366cc;
+}
 
-    header.site-header{
-      padding:16px 20px;
-      margin-bottom:20px;
-      border-radius: calc(var(--radius) + 2px);
-      color:var(--text-main);
-      font-weight:600;
-      font-size:18px;
-      letter-spacing:0.15px;
-      background: var(--panel-tint);
-      border: 1px solid var(--panel-border);
-      backdrop-filter: blur(var(--blur)) saturate(140%);
-      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.38), inset 0 0 0 0.6px rgba(255,255,255,0.02);
-    }
+.search-box {
+width: 100%;
+padding: 8px;
+font-size: 16px;
+border: 1px solid #999;
+margin-bottom: 10px;
+}
 
-    main.content {
-      background: var(--panel-tint);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius);
-      padding: 20px;
-      backdrop-filter: blur(var(--blur)) saturate(120%);
-      -webkit-backdrop-filter: blur(var(--blur)) saturate(120%);
-      box-shadow: 0 14px 40px rgba(0,0,0,0.45), inset 0 0 0 0.6px rgba(255,255,255,0.02);
-      position:relative;
-      overflow:visible;
-    }
+.search-button {
+background-color: #3366cc;
+color: white;
+border: none;
+padding: 8px 15px;
+font-size: 16px;
+cursor: pointer;
+}
 
-    /* This element receives the distortion filter and is positioned behind content */
-    .glass-layer {
-      position:absolute;
-      inset:0;
-      pointer-events:none;        /* allows clicks through */
-      border-radius: inherit;
-      overflow:hidden;
-      z-index:0;
-    }
-    /* overlay that applies displacement filter to a faint copy of the background */
-    .glass-layer .back {
-      position:absolute;
-      inset:-20%;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
-      transform: translateZ(0);
-      filter: none; /* filter applied via attribute in SVG usage below */
-      width:140%;
-      height:140%;
-      left:-20%;
-      top:-20%;
-      mix-blend-mode: normal;
-    }
+.search-button:hover {
+background-color: #3355aa;
+}
 
-    /* content sits above the glass-layer */
-    .content-inner { position: relative; z-index: 2; }
+.results {
+margin-top: 15px;
+}
 
-    /* ---------- Search input ---------- */
-    .search-row {
-      display:flex;
-      gap:12px;
-      align-items:center;
-      margin-bottom:12px;
-    }
+.result-item {
+border: 1px solid #ddd;
+padding: 10px;
+margin-bottom: 10px;
+background-color: #f9f9f9;
+}
 
-    input[type="text"]{
-      flex:1;
-      min-height:44px;
-      border-radius:10px;
-      border:1px solid var(--panel-border);
-      padding:10px 12px;
-      background: rgba(255,255,255,0.04);
-      color:var(--text-main);
-      font-size:15px;
-      outline:none;
-      box-shadow: none;
-      -webkit-appearance:none;
-      backdrop-filter: blur(calc(var(--blur) / 2));
-    }
-    input[type="text"]::placeholder { color:var(--text-sub); }
+.result-title {
+font-size: 18px;
+color: #0000cc;
+text-decoration: underline;
+font-weight: bold;
+}
 
-    /* subtle focus style (no transitions, immediate) */
-    input[type="text"]:focus{
-      border-color:var(--accent);
-      box-shadow: 0 0 0 3px rgba(90,168,255,0.06);
-    }
+.result-desc {
+margin-top: 5px;
+font-size: 14px;
+}
 
-    /* ---------- Results ---------- */
-    #results {
-      margin-top:8px;
-    }
+.result-meta {
+margin-top: 5px;
+font-size: 12px;
+color: #666;
+}
 
-    .result {
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 14px;
-      border-radius:10px;
-      background: rgba(0,0,0,0.12); /* slightly darker card to ensure contrast */
-      border: 1px solid rgba(255,255,255,0.03);
-      margin-top:10px;
-      align-items:flex-start;
-      color:var(--text-main);
-      z-index:2;
-    }
+.vote-section {
+margin-top: 10px;
+display: flex;
+align-items: center;
+}
 
-    .result-left { flex:1; }
-    .result-title {
-      font-size:15px;
-      color:var(--accent);
-      text-decoration:none;
-      font-weight:600;
-    }
-    .result-desc {
-      margin-top:6px;
-      color:var(--text-sub);
-      font-size:13px;
-      line-height:1.35;
-    }
-    .result-meta {
-      margin-top:8px;
-      font-size:12px;
-      color:var(--text-sub);
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .page-type {
-      background: rgba(255,255,255,0.04);
-      padding:4px 8px;
-      border-radius:6px;
-      font-size:12px;
-      color:var(--text-sub);
-      border:1px solid rgba(255,255,255,0.02);
-    }
+.vote-button {
+background-color: #eee;
+border: 1px solid #ccc;
+padding: 3px 8px;
+margin-right: 5px;
+cursor: pointer;
+}
 
-    /* ---------- Vote column (compact & immediate feedback) ---------- */
-    .vote-col {
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:6px;
-      width:56px;
-      flex-shrink:0;
-    }
-    .vote-btn {
-      appearance:none;
-      border: none;
-      background: transparent;
-      color:var(--text-sub);
-      cursor:pointer;
-      font-size:16px;
-      padding:6px;
-      line-height:1;
-    }
-    .vote-btn:active { transform:scale(0.98); }
-    .vote-btn.positive.active { color:#3be58b; }
-    .vote-btn.negative.active { color:#ff6b7a; }
-    .vote-count { font-size:12px; color:var(--text-sub); }
+.vote-count {
+font-size: 12px;
+margin-right: 10px;
+}
 
-    /* ---------- suggestion and notification ---------- */
-    .suggestion {
-      margin-top:10px;
-      color:var(--text-sub);
-      font-size:13px;
-      text-align:center;
-    }
-    .notification {
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      background: rgba(0,0,0,0.7);
-      padding:10px 14px;
-      border-radius:10px;
-      color:var(--text-main);
-      border:1px solid var(--panel-border);
-      font-size:13px;
-      display:none; /* show via class */
-    }
-    .notification.show { display:block; }
+.notification {
+position: fixed;
+bottom: 10px;
+right: 10px;
+background-color: #ffffcc;
+border: 1px solid #cccc99;
+padding: 8px;
+display: none;
+}
 
-    /* ---------- accessibility and reduced-motion fallback ---------- */
-    @media (prefers-reduced-motion: reduce) {
-      .glass-layer { will-change: auto !important; }
-    }
+.suggestion {
+margin-top: 5px;
+font-size: 14px;
+color: #666;
+}
+</style>
 
-    /* ---------- small-screen tweaks ---------- */
-    @media (max-width:520px) {
-      .vote-col { width:48px; }
-    }
-  </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="site-header">Zep Search Engine</header>
+<div class="container">
+<div class="header">Zep Search Engine</div>
 
-    <main class="content" id="mainPanel">
-      <!-- Glass layer: visual distortion is applied to its .back element via the SVG filter below -->
-      <div class="glass-layer" aria-hidden="true">
-        <div class="back" id="glassBack"></div>
-      </div>
+<div>
+<input type="text" id="search" class="search-box" placeholder="Search your sites...">
+<button id="searchButton" class="search-button">Search</button>
+</div>
 
-      <div class="content-inner">
-        <div class="search-row">
-          <input id="search" type="text" placeholder="Search your sites..." autocomplete="off" aria-label="Search" />
-        </div>
+<div id="suggestion" class="suggestion"></div>
 
-        <div id="suggestion" class="suggestion" role="status" aria-live="polite"></div>
-        <div id="results" aria-live="polite"></div>
-      </div>
-    </main>
-  </div>
+<div id="results" class="results"></div> </div>
 
-  <div id="notification" class="notification" role="status" aria-live="polite"></div>
+<div id="notification" class="notification"></div>
 
-  <!-- Inline SV G filter used for controlled displacement -->
-  <svg style="position:absolute;width:0;height:0;pointer-events:none" aria-hidden="true">
-    <filter id="liquid">
-      <!-- very low-frequency turbulence for smooth refraction -->
-      <feTurbulence id="turb" baseFrequency="0.006" numOctaves="2" seed="2" stitchTiles="stitch" />
-      <feDisplacementMap id="disp" in="SourceGraphic" in2="turb" scale="0" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-  </svg>
+<script>
+// URLs and data
+const dataURL = "https://literallytech.github.io/Zep/data/index.json";
+const votesURL = "https://literallytech.github.io/Zep/data/votes.json";
 
-  <script>
-  // ---------- Minimal, readable script — no external icons or flashy libraries ----------
-  (function () {
-    // URLs and data
-    const dataURL = "https://literallytech.github.io/Zep/data/index.json";
-    const votesURL = "https://literallytech.github.io/Zep/data/votes.json";
+// state
+let entries = [];
+let fuse = null;
+const userVotes = {}; // local-only quick state
 
-    // state
-    let entries = [];
-    let fuse = null;
-    const userVotes = {}; // local-only quick state
+// DOM
+const resultsEl = document.getElementById('results');
+const suggestionEl = document.getElementById('suggestion');
+const searchEl = document.getElementById('search');
+const searchButton = document.getElementById('searchButton');
+const notifyEl = document.getElementById('notification');
 
-    // DOM
-    const resultsEl = document.getElementById('results');
-    const suggestionEl = document.getElementById('suggestion');
-    const searchEl = document.getElementById('search');
-    const notifyEl = document.getElementById('notification');
-    const dispersElem = document.getElementById('disp');
-    const turbElem = document.getElementById('turb');
-    const glassBack = document.getElementById('glassBack');
-    const mainPanel = document.getElementById('mainPanel');
+// safe, small fuse implementation: we dynamically load Fuse only when needed to avoid blocking.
+function loadFuseAndInit(data) {
+return new Promise((resolve,reject) => {
+if (window.Fuse) {
+resolve();
+return;
+}
+const s = document.createElement('script');
+s.src = "https://cdn.jsdelivr.net/npm/fuse.js@6.6.2";
+s.onload = () => resolve();
+s.onerror = reject;
+document.head.appendChild(s);
+}).then(() => {
+// initialize fuse
+const options = {
+keys: [
+{ name: "name", weight: 0.35 },
+{ name: "desc", weight: 0.25 },
+{ name: "keywords", weight: 0.2 },
+{ name: "title", weight: 0.2 }
+],
+threshold: 0.36,
+includeScore: true,
+};
+fuse = new Fuse(entries, options);
+});
+}
 
-    // safe, small fuse implementation: we dynamically load Fuse only when needed to avoid blocking.
-    function loadFuseAndInit(data) {
-      return new Promise((resolve,reject) => {
-        if (window.Fuse) {
-          resolve();
-          return;
-        }
-        const s = document.createElement('script');
-        s.src = "https://cdn.jsdelivr.net/npm/fuse.js@6.6.2";
-        s.onload = () => resolve();
-        s.onerror = reject;
-        document.head.appendChild(s);
-      }).then(() => {
-        // initialize fuse
-        const options = {
-          keys: [
-            { name: "name", weight: 0.35 },
-            { name: "desc", weight: 0.25 },
-            { name: "keywords", weight: 0.2 },
-            { name: "title", weight: 0.2 }
-          ],
-          threshold: 0.36,
-          includeScore: true,
-        };
-        fuse = new Fuse(entries, options);
-      });
-    }
+// fetch + merge
+async function loadData() {
+try {
+const [rData, rVotes] = await Promise.all([
+fetch(dataURL + "?t=" + Date.now()).then(r => r.ok ? r.json() : []),
+fetch(votesURL + "?t=" + Date.now()).then(r => r.ok ? r.json() : [])
+]);
+// Merge votes into entries
+entries = (rData || []).map(item => {
+const v = (rVotes || []).find(x => x.url === item.url) || {};
+return {
+...item,
+voteScore: v.score || 0,
+positiveVotes: v.positive || 0,
+negativeVotes: v.negative || 0
+};
+});
+// initial sort by score
+entries.sort((a,b)=> (b.voteScore||0) - (a.voteScore||0));
+// load fuse and init
+await loadFuseAndInit(entries);
+} catch (err) {
+resultsEl.innerHTML = '<div style="text-align:center;color:#666">Failed to load data.</div>';
+console.error(err);
+}
+}
 
-    // fetch + merge
-    async function loadData() {
-      try {
-        const [rData, rVotes] = await Promise.all([
-          fetch(dataURL + "?t=" + Date.now()).then(r => r.ok ? r.json() : []),
-          fetch(votesURL + "?t=" + Date.now()).then(r => r.ok ? r.json() : [])
-        ]);
-        // Merge votes into entries
-        entries = (rData || []).map(item => {
-          const v = (rVotes || []).find(x => x.url === item.url) || {};
-          return {
-            ...item,
-            voteScore: v.score || 0,
-            positiveVotes: v.positive || 0,
-            negativeVotes: v.negative || 0
-          };
-        });
-        // initial sort by score
-        entries.sort((a,b)=> (b.voteScore||0) - (a.voteScore||0));
-        // load fuse and init
-        await loadFuseAndInit(entries);
-      } catch (err) {
-        resultsEl.innerHTML = '<div style="text-align:center;color:#bdbfc1">Failed to load data.</div>';
-        console.error(err);
-      }
-    }
+function renderResults(list) {
+if (!list || !list.length) {
+resultsEl.innerHTML = '<div style="text-align:center;color:#666">No results.</div>';
+return;
+}
+const html = list.map(r => {
+const item = r.item || r; // if search result item vs raw
+const hv = userVotes[item.url];
+return `
+<div class="result-item" data-url="${escapeHtml(item.url)}">
+<a class="result-title" href="${escapeHtml(item.url)}" target="_blank">${escapeHtml(item.name)}</a>
+<div class="result-desc">${escapeHtml(item.desc || item.description || item.title || '')}</div>
+<div class="result-meta">
+${item.pageType ? `<span>[${escapeHtml(item.pageType)}]</span>` : ''}
+${typeof item.voteScore === 'number' ? `<span>Score: ${item.voteScore>0 ? '+'+item.voteScore : item.voteScore}</span>` : ''}
+</div>
+<div class="vote-section">
+<button class="vote-button ${hv==='positive' ? 'active' : ''}" data-action="vote" data-type="positive">▲</button>
+<span class="vote-count">${item.positiveVotes||0}</span>
+<button class="vote-button ${hv==='negative' ? 'active' : ''}" data-action="vote" data-type="negative">▼</button>
+<span class="vote-count">${item.negativeVotes||0}</span>
+</div>
+</div>
+`;
+}).join('');
+resultsEl.innerHTML = html;
+// attach vote handlers (delegation would be fine too)
+resultsEl.querySelectorAll('[data-action="vote"]').forEach(btn=>{
+btn.addEventListener('click', onVoteClick);
+});
+}
 
-    function renderResults(list) {
-      if (!list || !list.length) {
-        resultsEl.innerHTML = '<div style="text-align:center;color:#bdbfc1">No results.</div>';
-        return;
-      }
-      const html = list.map(r => {
-        const item = r.item || r; // if search result item vs raw
-        const hv = userVotes[item.url];
-        // small inline SVG thumbs (kept minimal, not external)
-        const up = `<svg width="14" height="14" viewBox="0 0 24 24" fill="${hv==='positive' ? '#3be58b' : 'currentColor'}" aria-hidden="true"><path d="M14 2H6c-1 0-2 .9-2 2v7h10l4-6V4c0-1.1-.9-2-2-2z"/><path d="M22 13h-5v8h5c1.1 0 2-.9 2-2v-4c0-1.1-.9-2-2-2z"/></svg>`;
-        const down = `<svg width="14" height="14" viewBox="0 0 24 24" fill="${hv==='negative' ? '#ff6b7a' : 'currentColor'}" aria-hidden="true"><path d="M10 22h8c1 0 2-.9 2-2v-7H10l-4 6v1c0 1.1.9 2 2 2z"/><path d="M2 11h5V3H2C.9 3 0 3.9 0 5v4c0 1.1.9 2 2 2z"/></svg>`;
-        return `
-          <div class="result" data-url="${escapeHtml(item.url)}">
-            <div class="result-left">
-              <a class="result-title" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>
-              <div class="result-desc">${escapeHtml(item.desc || item.description || item.title || '')}</div>
-              <div class="result-meta">
-                ${item.pageType ? `<span class="page-type">${escapeHtml(item.pageType)}</span>` : ''}
-                ${typeof item.voteScore === 'number' ? `<span>Score: ${item.voteScore>0 ? '+'+item.voteScore : item.voteScore}</span>` : ''}
-              </div>
-            </div>
-            <div class="vote-col" aria-hidden="false">
-              <button class="vote-btn positive ${hv==='positive' ? 'active' : ''}" data-action="vote" data-type="positive" title="Helpful">${up}</button>
-              <div class="vote-count">${item.positiveVotes||0}</div>
-              <button class="vote-btn negative ${hv==='negative' ? 'active' : ''}" data-action="vote" data-type="negative" title="Not helpful">${down}</button>
-              <div class="vote-count">${item.negativeVotes||0}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-      resultsEl.innerHTML = html;
-      // attach vote handlers (delegation would be fine too)
-      resultsEl.querySelectorAll('[data-action="vote"]').forEach(btn=>{
-        btn.addEventListener('click', onVoteClick);
-      });
-    }
+function onVoteClick(e) {
+const btn = e.currentTarget;
+const type = btn.dataset.type;
+const root = btn.closest('.result-item');
+const url = root && root.getAttribute('data-url');
+if (!url) return;
+userVotes[url] = type;
+// visual update
+root.querySelectorAll('.vote-button').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+showNotification('Vote recorded');
+// send to server (fire and forget)
+fetch('https://literallytech.github.io/Zep/api/collect-vote', {
+method:'POST',
+headers: { 'Content-Type':'application/json' },
+body: JSON.stringify({ url, type, timestamp: Date.now() })
+}).catch(()=>{/* do not block user */});
+}
 
-    function onVoteClick(e) {
-      const btn = e.currentTarget;
-      const type = btn.dataset.type;
-      const root = btn.closest('.result');
-      const url = root && root.getAttribute('data-url');
-      if (!url) return;
-      userVotes[url] = type;
-      // visual update
-      root.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      showNotification('Vote recorded');
-      // send to server (fire and forget)
-      fetch('https://literallytech.github.io/Zep/api/collect-vote', {
-        method:'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({ url, type, timestamp: Date.now() })
-      }).catch(()=>{/* do not block user */});
-    }
+function doSearch(q) {
+if (!fuse || !q.trim()) {
+resultsEl.innerHTML = '';
+suggestionEl.textContent = '';
+return;
+}
+const res = fuse.search(q);
+if (!res.length) {
+resultsEl.innerHTML = '<div style="text-align:center;color:#666">No results found.</div>';
+suggestionEl.textContent = '';
+return;
+}
+// suggestion logic
+if (res[0].score > 0.26) {
+suggestionEl.innerHTML = `Did you mean: <a href="#" id="didYouMean">${escapeHtml(res[0].item.name)}</a>?`;
+const link = document.getElementById('didYouMean');
+if (link) link.addEventListener('click', (ev)=>{ ev.preventDefault(); searchEl.value = res[0].item.name; doSearch(res[0].item.name); });
+} else {
+suggestionEl.textContent = '';
+}
+renderResults(res);
+}
 
-    function doSearch(q) {
-      if (!fuse || !q.trim()) {
-        resultsEl.innerHTML = '';
-        suggestionEl.textContent = '';
-        return;
-      }
-      const res = fuse.search(q);
-      if (!res.length) {
-        resultsEl.innerHTML = '<div style="text-align:center;color:#bdbfc1">No results found.</div>';
-        suggestionEl.textContent = '';
-        return;
-      }
-      // suggestion logic
-      if (res[0].score > 0.26) {
-        suggestionEl.innerHTML = `Did you mean: <a href="#" id="didYouMean">${escapeHtml(res[0].item.name)}</a>?`;
-        const link = document.getElementById('didYouMean');
-        if (link) link.addEventListener('click', (ev)=>{ ev.preventDefault(); searchEl.value = res[0].item.name; doSearch(res[0].item.name); });
-      } else {
-        suggestionEl.textContent = '';
-      }
-      renderResults(res);
-    }
+// utility to escape HTML for simple safety (titles/descriptions)
+function escapeHtml(s){
+if (!s && s !== 0) return '';
+return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
-    // utility to escape HTML for simple safety (titles/descriptions)
-    function escapeHtml(s){
-      if (!s && s !== 0) return '';
-      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
+// Simple notification (no animation heavy)
+let notifyTimer = null;
+function showNotification(msg){
+clearTimeout(notifyTimer);
+notifyEl.textContent = msg;
+notifyEl.style.display = 'block';
+notifyTimer = setTimeout(()=>{
+notifyEl.style.display = 'none';
+}, 2000);
+}
 
-    // Simple notification (no animation heavy)
-    let notifyTimer = null;
-    function showNotification(msg){
-      clearTimeout(notifyTimer);
-      notifyEl.textContent = msg;
-      notifyEl.classList.add('show');
-      notifyEl.style.display = 'block';
-      notifyTimer = setTimeout(()=>{
-        notifyEl.classList.remove('show');
-        notifyEl.style.display = 'none';
-      }, 2000);
-    }
+// ---------- initialize handlers ----------
+function initHandlers() {
+searchEl.addEventListener('input', e => doSearch(e.target.value));
+searchButton.addEventListener('click', () => doSearch(searchEl.value));
+// keyboard enter quick search (no submit)
+searchEl.addEventListener('keydown', (ev) => {
+if (ev.key === 'Enter') {
+doSearch(searchEl.value);
+}
+});
+}
 
-    // ---------- Liquid distortion control ----------
-    // We animate the feDisplacementMap scale attribute using requestAnimationFrame with throttling.
-    // Keep the effect subtle and based on pointer distance from center. If pointer is idle, scale eases to 0.
-    let desiredScale = 0;
-    let currentScale = 0;
-    let rafId = null;
-    const maxScale = Math.max(2, Number(getComputedStyle(document.documentElement).getPropertyValue('--distort-max')) || 6);
+// bootstrap
+(async function bootstrap(){
+initHandlers();
+await loadData();
+// pre-render top entries (initial list)
+if (entries && entries.length) {
+// transform to expected fuse result shape for rendering convenience
+const initial = entries.slice(0, 12).map(i => ({ item: i }));
+renderResults(initial);
+}
+})();
 
-    // pointer movement handler: compute a small scale value (0..maxScale)
-    function onPointerMove(e) {
-      // compute relative position inside main panel
-      const rect = mainPanel.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = (e.clientX - cx) / rect.width;
-      const dy = (e.clientY - cy) / rect.height;
-      const dist = Math.sqrt(dx*dx + dy*dy); // 0 center .. ~0.7 corners
-      // invert: closer to center => slightly more distortion; far => less
-      const target = Math.max(0, (0.5 - dist)) * 2 * (maxScale / 6);
-      desiredScale = Math.min(maxScale, Math.max(0, target * maxScale));
-      // also slightly vary turbulence frequency for character
-      const baseFreq = 0.006 + (desiredScale * 0.0009);
-      turbElem.setAttribute('baseFrequency', baseFreq.toFixed(5));
-      startRaf();
-    }
-
-    function onPointerLeave() {
-      desiredScale = 0;
-      turbElem.setAttribute('baseFrequency', '0.006');
-      startRaf();
-    }
-
-    function startRaf() {
-      if (rafId) return;
-      rafId = requestAnimationFrame(step);
-    }
-
-    function step() {
-      // smooth approach
-      currentScale += (desiredScale - currentScale) * 0.18; // easing factor tuned for smoothness
-      // round to avoid tiny changes
-      const rounded = Math.round(currentScale * 100) / 100;
-      dispersElem.setAttribute('scale', String(rounded));
-      // when negligible, stop RAF
-      if (Math.abs(currentScale - desiredScale) < 0.01 && desiredScale === 0) {
-        rafId = null;
-        currentScale = 0;
-        dispersElem.setAttribute('scale','0');
-        return;
-      }
-      rafId = requestAnimationFrame(step);
-    }
-
-    // apply filter to glassBack: set CSS filter property to url(#id)
-    function attachFilter() {
-      try {
-        // Use CSS filter with URL reference (Chromium & Safari okay); Firefox needs prefix-free usage or fallback
-        glassBack.style.filter = 'url(#liquid)';
-        // To make the displaced layer show content beneath, we copy a faint gradient onto .back (already present).
-        // If browser doesn't support filter:url, this will simply do nothing — we rely on backdrop-filter for blur instead.
-      } catch(e){ /* ignore */ }
-    }
-
-    // ---------- initialize handlers ----------
-    function initHandlers() {
-      searchEl.addEventListener('input', e => doSearch(e.target.value));
-      // pointer events for subtle liquid movement (throttled by RAF internal)
-      mainPanel.addEventListener('pointermove', onPointerMove);
-      mainPanel.addEventListener('pointerleave', onPointerLeave);
-      // keyboard enter quick search (no submit)
-      searchEl.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter') {
-          doSearch(searchEl.value);
-        }
-      });
-    }
-
-    // bootstrap
-    (async function bootstrap(){
-      attachFilter();
-      initHandlers();
-      await loadData();
-      // pre-render top entries (initial list)
-      if (entries && entries.length) {
-        // transform to expected fuse result shape for rendering convenience
-        const initial = entries.slice(0, 12).map(i => ({ item: i }));
-        renderResults(initial);
-      }
-    })();
-
-    // expose small helpers for debugging (no global library)
-    window._zep = { doSearch, entries };
-
-  })();
-  </script>
+// expose small helpers for debugging (no global library)
+window._zep = { doSearch, entries };
+</script>
 </body>
 </html>
