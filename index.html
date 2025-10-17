@@ -2,326 +2,275 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Zep Search Engine.</title>
+<title>Zep Search Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+:root {
+  --color-bg: #0f0f0f;
+  --color-bg-secondary: #1a1a1a;
+  --color-text: #fff;
+  --color-muted: #999;
+  --color-primary: #8B0000; /* Blood red */
+  --radius: 8px;
+  --transition-fast: 0.2s ease;
+}
+
 body {
-background-color: #f0f0f0;
-font-family: Arial, Helvetica, sans-serif;
-margin: 0;
-padding: 10px;
-color: #333;
+  background-color: var(--color-bg);
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 20px;
+  color: var(--color-text);
 }
 
 .container {
-max-width: 800px;
-margin: 0 auto;
-background-color: #fff;
-border: 1px solid #ccc;
-padding: 15px;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid #2c2c2c;
 }
 
 .header {
-background-color: #3366cc;
-color: white;
-padding: 10px;
-font-size: 24px;
-font-weight: bold;
-text-align: center;
-margin-bottom: 15px;
-border: 1px solid #3366cc;
+  font-size: 2em;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--color-primary);
 }
 
 .search-box {
-width: 100%;
-padding: 8px;
-font-size: 16px;
-border: 1px solid #999;
-margin-bottom: 10px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: var(--radius);
+  border: 1px solid #444;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin-bottom: 10px;
 }
 
 .search-button {
-background-color: #3366cc;
-color: white;
-border: none;
-padding: 8px 15px;
-font-size: 16px;
-cursor: pointer;
+  background-color: var(--color-primary);
+  color: var(--color-text);
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: var(--radius);
 }
 
 .search-button:hover {
-background-color: #3355aa;
+  background-color: #6e0000;
 }
 
 .results {
-margin-top: 15px;
+  margin-top: 20px;
 }
 
 .result-item {
-border: 1px solid #ddd;
-padding: 10px;
-margin-bottom: 10px;
-background-color: #f9f9f9;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid #2c2c2c;
+  padding: 15px;
+  border-radius: var(--radius);
+  margin-bottom: 15px;
 }
 
 .result-title {
-font-size: 18px;
-color: #0000cc;
-text-decoration: underline;
-font-weight: bold;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.result-title:hover {
+  text-decoration: underline;
 }
 
 .result-desc {
-margin-top: 5px;
-font-size: 14px;
+  margin-top: 5px;
+  font-size: 0.95em;
+  color: var(--color-text);
 }
 
 .result-meta {
-margin-top: 5px;
-font-size: 12px;
-color: #666;
+  margin-top: 5px;
+  font-size: 0.85em;
+  color: var(--color-muted);
 }
 
 .vote-section {
-margin-top: 10px;
-display: flex;
-align-items: center;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .vote-button {
-background-color: #eee;
-border: 1px solid #ccc;
-padding: 3px 8px;
-margin-right: 5px;
-cursor: pointer;
+  background-color: #333;
+  color: var(--color-text);
+  border: 1px solid #444;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.vote-button.active {
+  background-color: var(--color-primary);
+  color: #fff;
 }
 
 .vote-count {
-font-size: 12px;
-margin-right: 10px;
+  font-size: 0.85em;
+  margin-right: 10px;
 }
 
 .notification {
-position: fixed;
-bottom: 10px;
-right: 10px;
-background-color: #ffffcc;
-border: 1px solid #cccc99;
-padding: 8px;
-display: none;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid #2c2c2c;
+  padding: 10px;
+  color: var(--color-text);
+  display: none;
+  border-radius: var(--radius);
 }
 
 .suggestion {
-margin-top: 5px;
-font-size: 14px;
-color: #666;
+  margin-top: 10px;
+  font-size: 0.95em;
+  color: var(--color-muted);
+}
+
+.suggestion a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.suggestion a:hover {
+  text-decoration: underline;
 }
 </style>
-
 </head>
 <body>
 <div class="container">
-<div class="header">Zep Search Engine</div>
-
-<div>
-<input type="text" id="search" class="search-box" placeholder="Search your sites...">
-<button id="searchButton" class="search-button">Search</button>
+  <div class="header">Zep Search Engine</div>
+  <div>
+    <input type="text" id="search" class="search-box" placeholder="Search your sites...">
+    <button id="searchButton" class="search-button">Search</button>
+  </div>
+  <div id="suggestion" class="suggestion"></div>
+  <div id="results" class="results"></div>
 </div>
-
-<div id="suggestion" class="suggestion"></div>
-
-<div id="results" class="results"></div> </div>
 
 <div id="notification" class="notification"></div>
 
 <script>
-// URLs and data
+// Your original JS logic is preserved exactly
 const dataURL = "https://literallytech.github.io/Zep/data/index.json";
 const votesURL = "https://literallytech.github.io/Zep/data/votes.json";
-
-// state
-let entries = [];
-let fuse = null;
-const userVotes = {}; // local-only quick state
-
-// DOM
+let entries = [], fuse = null, userVotes = {};
 const resultsEl = document.getElementById('results');
 const suggestionEl = document.getElementById('suggestion');
 const searchEl = document.getElementById('search');
 const searchButton = document.getElementById('searchButton');
 const notifyEl = document.getElementById('notification');
 
-// safe, small fuse implementation: we dynamically load Fuse only when needed to avoid blocking.
-function loadFuseAndInit(data) {
-return new Promise((resolve,reject) => {
-if (window.Fuse) {
-resolve();
-return;
-}
-const s = document.createElement('script');
-s.src = "https://cdn.jsdelivr.net/npm/fuse.js@6.6.2";
-s.onload = () => resolve();
-s.onerror = reject;
-document.head.appendChild(s);
-}).then(() => {
-// initialize fuse
-const options = {
-keys: [
-{ name: "name", weight: 0.35 },
-{ name: "desc", weight: 0.25 },
-{ name: "keywords", weight: 0.2 },
-{ name: "title", weight: 0.2 }
-],
-threshold: 0.36,
-includeScore: true,
-};
-fuse = new Fuse(entries, options);
-});
+function loadFuseAndInit(data){
+  return new Promise((resolve,reject)=>{
+    if(window.Fuse){resolve(); return;}
+    const s=document.createElement('script');
+    s.src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2";
+    s.onload=()=>resolve();
+    s.onerror=reject;
+    document.head.appendChild(s);
+  }).then(()=>{
+    const options = { keys:[{name:"name",weight:0.35},{name:"desc",weight:0.25},{name:"keywords",weight:0.2},{name:"title",weight:0.2}], threshold:0.36, includeScore:true };
+    fuse = new Fuse(entries, options);
+  });
 }
 
-// fetch + merge
-async function loadData() {
-try {
-const [rData, rVotes] = await Promise.all([
-fetch(dataURL + "?t=" + Date.now()).then(r => r.ok ? r.json() : []),
-fetch(votesURL + "?t=" + Date.now()).then(r => r.ok ? r.json() : [])
-]);
-// Merge votes into entries
-entries = (rData || []).map(item => {
-const v = (rVotes || []).find(x => x.url === item.url) || {};
-return {
-...item,
-voteScore: v.score || 0,
-positiveVotes: v.positive || 0,
-negativeVotes: v.negative || 0
-};
-});
-// initial sort by score
-entries.sort((a,b)=> (b.voteScore||0) - (a.voteScore||0));
-// load fuse and init
-await loadFuseAndInit(entries);
-} catch (err) {
-resultsEl.innerHTML = '<div style="text-align:center;color:#666">Failed to load data.</div>';
-console.error(err);
-}
+async function loadData(){
+  try {
+    const [rData,rVotes]=await Promise.all([fetch(dataURL+"?t="+Date.now()).then(r=>r.ok?r.json():[]), fetch(votesURL+"?t="+Date.now()).then(r=>r.ok?r.json():[])]);
+    entries = (rData||[]).map(item=>{
+      const v=(rVotes||[]).find(x=>x.url===item.url)||{};
+      return {...item, voteScore:v.score||0, positiveVotes:v.positive||0, negativeVotes:v.negative||0};
+    });
+    entries.sort((a,b)=>(b.voteScore||0)-(a.voteScore||0));
+    await loadFuseAndInit(entries);
+  } catch(err){
+    resultsEl.innerHTML='<div style="text-align:center;color:#999">Failed to load data.</div>';
+    console.error(err);
+  }
 }
 
-function renderResults(list) {
-if (!list || !list.length) {
-resultsEl.innerHTML = '<div style="text-align:center;color:#666">No results.</div>';
-return;
-}
-const html = list.map(r => {
-const item = r.item || r; // if search result item vs raw
-const hv = userVotes[item.url];
-return `
-<div class="result-item" data-url="${escapeHtml(item.url)}">
-<a class="result-title" href="${escapeHtml(item.url)}" target="_blank">${escapeHtml(item.name)}</a>
-<div class="result-desc">${escapeHtml(item.desc || item.description || item.title || '')}</div>
-<div class="result-meta">
-${item.pageType ? `<span>[${escapeHtml(item.pageType)}]</span>` : ''}
-${typeof item.voteScore === 'number' ? `<span>Score: ${item.voteScore>0 ? '+'+item.voteScore : item.voteScore}</span>` : ''}
-</div>
-<div class="vote-section">
-<button class="vote-button ${hv==='positive' ? 'active' : ''}" data-action="vote" data-type="positive">▲</button>
-<span class="vote-count">${item.positiveVotes||0}</span>
-<button class="vote-button ${hv==='negative' ? 'active' : ''}" data-action="vote" data-type="negative">▼</button>
-<span class="vote-count">${item.negativeVotes||0}</span>
-</div>
-</div>
-`;
-}).join('');
-resultsEl.innerHTML = html;
-// attach vote handlers (delegation would be fine too)
-resultsEl.querySelectorAll('[data-action="vote"]').forEach(btn=>{
-btn.addEventListener('click', onVoteClick);
-});
+function renderResults(list){
+  if(!list||!list.length){resultsEl.innerHTML='<div style="text-align:center;color:#999">No results.</div>';return;}
+  const html = list.map(r=>{
+    const item = r.item||r;
+    const hv=userVotes[item.url];
+    return `
+    <div class="result-item" data-url="${escapeHtml(item.url)}">
+      <a class="result-title" href="${escapeHtml(item.url)}" target="_blank">${escapeHtml(item.name)}</a>
+      <div class="result-desc">${escapeHtml(item.desc||item.description||item.title||'')}</div>
+      <div class="result-meta">${item.pageType?`<span>[${escapeHtml(item.pageType)}]</span>`:''}${typeof item.voteScore==='number'?` <span>Score:${item.voteScore>0?'+':''}${item.voteScore}</span>`:''}</div>
+      <div class="vote-section">
+        <button class="vote-button ${hv==='positive'?'active':''}" data-action="vote" data-type="positive">▲</button>
+        <span class="vote-count">${item.positiveVotes||0}</span>
+        <button class="vote-button ${hv==='negative'?'active':''}" data-action="vote" data-type="negative">▼</button>
+        <span class="vote-count">${item.negativeVotes||0}</span>
+      </div>
+    </div>`;
+  }).join('');
+  resultsEl.innerHTML=html;
+  resultsEl.querySelectorAll('[data-action="vote"]').forEach(btn=>{btn.addEventListener('click', onVoteClick);});
 }
 
-function onVoteClick(e) {
-const btn = e.currentTarget;
-const type = btn.dataset.type;
-const root = btn.closest('.result-item');
-const url = root && root.getAttribute('data-url');
-if (!url) return;
-userVotes[url] = type;
-// visual update
-root.querySelectorAll('.vote-button').forEach(b => b.classList.remove('active'));
-btn.classList.add('active');
-showNotification('Vote recorded');
-// send to server (fire and forget)
-fetch('https://literallytech.github.io/Zep/api/collect-vote', {
-method:'POST',
-headers: { 'Content-Type':'application/json' },
-body: JSON.stringify({ url, type, timestamp: Date.now() })
-}).catch(()=>{/* do not block user */});
+function onVoteClick(e){
+  const btn=e.currentTarget;
+  const type=btn.dataset.type;
+  const root=btn.closest('.result-item');
+  const url=root&&root.getAttribute('data-url');
+  if(!url)return;
+  userVotes[url]=type;
+  root.querySelectorAll('.vote-button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  showNotification('Vote recorded');
+  fetch('https://literallytech.github.io/Zep/api/collect-vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,type,timestamp:Date.now()})}).catch(()=>{});
 }
 
-function doSearch(q) {
-if (!fuse || !q.trim()) {
-resultsEl.innerHTML = '';
-suggestionEl.textContent = '';
-return;
-}
-const res = fuse.search(q);
-if (!res.length) {
-resultsEl.innerHTML = '<div style="text-align:center;color:#666">No results found.</div>';
-suggestionEl.textContent = '';
-return;
-}
-// suggestion logic
-if (res[0].score > 0.26) {
-suggestionEl.innerHTML = `Did you mean: <a href="#" id="didYouMean">${escapeHtml(res[0].item.name)}</a>?`;
-const link = document.getElementById('didYouMean');
-if (link) link.addEventListener('click', (ev)=>{ ev.preventDefault(); searchEl.value = res[0].item.name; doSearch(res[0].item.name); });
-} else {
-suggestionEl.textContent = '';
-}
-renderResults(res);
+function doSearch(q){
+  if(!fuse||!q.trim()){resultsEl.innerHTML='';suggestionEl.textContent='';return;}
+  const res=fuse.search(q);
+  if(!res.length){resultsEl.innerHTML='<div style="text-align:center;color:#999">No results found.</div>';suggestionEl.textContent='';return;}
+  if(res[0].score>0.26){
+    suggestionEl.innerHTML=`Did you mean: <a href="#" id="didYouMean">${escapeHtml(res[0].item.name)}</a>?`;
+    const link=document.getElementById('didYouMean');
+    if(link) link.addEventListener('click', (ev)=>{ ev.preventDefault(); searchEl.value=res[0].item.name; doSearch(res[0].item.name); });
+  } else { suggestionEl.textContent=''; }
+  renderResults(res);
 }
 
-// utility to escape HTML for simple safety (titles/descriptions)
-function escapeHtml(s){
-if (!s && s !== 0) return '';
-return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function escapeHtml(s){ if(!s&&s!==0)return''; return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+let notifyTimer=null;
+function showNotification(msg){ clearTimeout(notifyTimer); notifyEl.textContent=msg; notifyEl.style.display='block'; notifyTimer=setTimeout(()=>{ notifyEl.style.display='none'; },2000); }
+
+function initHandlers(){
+  searchEl.addEventListener('input', e=>doSearch(e.target.value));
+  searchButton.addEventListener('click', ()=>doSearch(searchEl.value));
+  searchEl.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ doSearch(searchEl.value); } });
 }
 
-// Simple notification (no animation heavy)
-let notifyTimer = null;
-function showNotification(msg){
-clearTimeout(notifyTimer);
-notifyEl.textContent = msg;
-notifyEl.style.display = 'block';
-notifyTimer = setTimeout(()=>{
-notifyEl.style.display = 'none';
-}, 2000);
-}
-
-// ---------- initialize handlers ----------
-function initHandlers() {
-searchEl.addEventListener('input', e => doSearch(e.target.value));
-searchButton.addEventListener('click', () => doSearch(searchEl.value));
-// keyboard enter quick search (no submit)
-searchEl.addEventListener('keydown', (ev) => {
-if (ev.key === 'Enter') {
-doSearch(searchEl.value);
-}
-});
-}
-
-// bootstrap
 (async function bootstrap(){
-initHandlers();
-await loadData();
-// pre-render top entries (initial list)
-if (entries && entries.length) {
-// transform to expected fuse result shape for rendering convenience
-const initial = entries.slice(0, 12).map(i => ({ item: i }));
-renderResults(initial);
-}
+  initHandlers();
+  await loadData();
+  if(entries&&entries.length){ renderResults(entries.slice(0,12).map(i=>({item:i}))); }
 })();
-
-// expose small helpers for debugging (no global library)
-window._zep = { doSearch, entries };
+window._zep={ doSearch, entries };
 </script>
 </body>
 </html>
